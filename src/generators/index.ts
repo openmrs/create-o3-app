@@ -103,7 +103,7 @@ function showSuccessMessage(
 
   // Context-aware documentation links
   const hasRoutes = moduleConfig.routes && moduleConfig.routes.length > 0;
-  
+
   // Show direct URL for routes
   if (hasRoutes && moduleConfig.routes && moduleConfig.routes.length > 0) {
     const primaryRoute = moduleConfig.routes[0].path;

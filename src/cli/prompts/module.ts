@@ -61,7 +61,11 @@ export async function promptModuleConfig(
 
       // Show URL info for the provided route
       if (!isNonInteractive) {
-        console.log(chalk.cyan(`📍 Your module will be available at: http://localhost:8080/openmrs/spa${options.route}`));
+        console.log(
+          chalk.cyan(
+            `📍 Your module will be available at: http://localhost:8080/openmrs/spa${options.route}`
+          )
+        );
       }
     } else {
       // Always create a default route when no route flags provided (avoids hanging prompts)
@@ -80,7 +84,11 @@ export async function promptModuleConfig(
 
       // Show URL info for the created route
       if (!isNonInteractive) {
-        console.log(chalk.cyan(`📍 Your module will be available at: http://localhost:8080/openmrs/spa${defaultRoute}`));
+        console.log(
+          chalk.cyan(
+            `📍 Your module will be available at: http://localhost:8080/openmrs/spa${defaultRoute}`
+          )
+        );
       }
 
       // Only prompt for more routes in truly interactive mode (not when defaulting)

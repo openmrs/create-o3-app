@@ -45,16 +45,18 @@ export async function promptProjectConfig(
   const normalizeProjectName = (name: string): string => {
     return name
       .replace(/^openmrs-esm-/, '') // Remove "openmrs-esm-" prefix
-      .replace(/^esm-/, '')         // Remove "esm-" prefix
-      .replace(/^openmrs-/, '');    // Remove "openmrs-" prefix
+      .replace(/^esm-/, '') // Remove "esm-" prefix
+      .replace(/^openmrs-/, ''); // Remove "openmrs-" prefix
   };
 
   // Normalize the project name to avoid redundant prefixes
   const originalProjectName = projectName;
   projectName = normalizeProjectName(projectName);
-  
+
   if (originalProjectName !== projectName) {
-    console.log(chalk.cyan(`💡 Normalized project name from "${originalProjectName}" to "${projectName}"`));
+    console.log(
+      chalk.cyan(`💡 Normalized project name from "${originalProjectName}" to "${projectName}"`)
+    );
   }
 
   // Package name
