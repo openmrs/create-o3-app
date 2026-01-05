@@ -275,6 +275,20 @@ npm run format:check
 npm run typecheck
 ```
 
+### Git hooks
+
+This project uses [Husky](https://typicode.github.io/husky/) and
+[lint-staged](https://github.com/okonet/lint-staged) to enforce code quality:
+
+- **Pre-commit hook**: Automatically formats and lints staged files, then runs
+  type checking. This ensures code quality before commits.
+- **Pre-push hook**: Runs the full test suite and build check before pushing to
+  prevent broken code from being pushed.
+
+Hooks are automatically installed when you run `npm install` (via the `prepare`
+script). To bypass hooks in an emergency, use `git commit --no-verify` or `git
+push --no-verify` (use sparingly).
+
 ### Testing the CLI locally
 
 You can test the CLI locally using:

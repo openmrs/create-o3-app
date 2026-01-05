@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged (format + lint only staged files)
+npx lint-staged
+
+# Run typecheck (fast, catches type errors)
+npm run typecheck
