@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json.openmrs.org/routes.schema.json",
+{{#if backendDependencies}}
+  "backendDependencies": {
+{{#each backendDependencies}}
+    "{{this}}": "^1.0.0"{{#unless @last}},{{/unless}}
+{{/each}}
+  },
+{{/if}}
+  "pages": [
+{{#each routes}}
+    {
+      "route": "{{#if (startsWith this.path '/')}}{{substring this.path 1}}{{else}}{{this.path}}{{/if}}",
+      "component": "root"{{#if this.online}},
+      "online": {{this.online}}{{/if}}{{#if this.offline}},
+      "offline": {{this.offline}}{{/if}}
+    }{{#unless @last}},{{/unless}}
+{{/each}}
+  ],
+  "extensions": [
+{{#each extensions}}
+    {
+      "name": "{{this.name}}",
+      "slot": "{{this.slot}}",
+      "component": "{{kebabCase this.componentName}}"{{#if this.online}},
+      "online": {{this.online}}{{/if}}{{#if this.offline}},
+      "offline": {{this.offline}}{{/if}}{{#if this.order}},
+      "order": {{this.order}}{{/if}}{{#if this.featureFlag}},
+      "featureFlag": "{{this.featureFlag}}"{{/if}}{{#if this.meta}},
+      "meta": {{json this.meta}}{{/if}}
+    }{{#unless @last}},{{/unless}}
+{{/each}}
+  ]{{#if modals}},
+  "modals": [
+{{#each modals}}
+    {
+      "name": "{{this.name}}",
+      "component": "{{kebabCase this.componentName}}"
+    }{{#unless @last}},{{/unless}}
+{{/each}}
+  ]{{/if}}{{#if workspaces}},
+  "workspaces": [
+{{#each workspaces}}
+    {
+      "name": "{{this.name}}",
+      "title": "{{this.title}}",
+      "component": "{{kebabCase this.componentName}}",
+      "type": "{{this.type}}"
+    }{{#unless @last}},{{/unless}}
+{{/each}}
+  ]{{/if}}{{#if featureFlags}},
+  "featureFlags": [
+{{#each featureFlags}}
+    {
+      "name": "{{this.name}}",
+      "label": "{{this.label}}",
+      "description": "{{this.description}}"
+    }{{#unless @last}},{{/unless}}
+{{/each}}
+  ]{{/if}}
+}
+

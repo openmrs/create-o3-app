@@ -1,0 +1,4 @@
+{
+  "welcomeToModule": "Welcome to {{projectName}}!",
+  "getStarted": "Get started by adding routes, extensions, or components."
+}

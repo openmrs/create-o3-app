@@ -1,0 +1,22 @@
+@use '@carbon/layout';
+@use '@carbon/type';
+
+.container {
+  padding: layout.$spacing-04;
+  border: 1px solid var(--cds-border-subtle-01);
+  border-radius: 4px;
+  background: var(--cds-background);
+}
+
+.title {
+  @include type.type-style('heading-compact-01');
+  margin-bottom: layout.$spacing-03;
+  color: var(--cds-text-primary);
+}
+
+.description {
+  @include type.type-style('body-compact-01');
+  color: var(--cds-text-secondary);
+  margin-bottom: layout.$spacing-04;
+  line-height: 1.4;
+}

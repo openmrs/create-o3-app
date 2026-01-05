@@ -1,0 +1,6 @@
+dist/
+node_modules/
+*.config.ts
+src/templates/template-files/
+**/*.test.ts
+**/*.spec.ts
