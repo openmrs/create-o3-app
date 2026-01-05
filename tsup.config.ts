@@ -3,7 +3,7 @@ import { copyFileSync, mkdirSync, readdirSync, statSync, existsSync } from 'fs';
 import { join } from 'path';
 
 // Copy template files to dist after build
-function copyTemplates() {
+async function copyTemplates() {
   const srcTemplateDir = join(process.cwd(), 'src', 'templates', 'template-files');
   const distTemplateDir = join(process.cwd(), 'dist', 'templates', 'template-files');
   
@@ -41,6 +41,7 @@ export default defineConfig({
   clean: true,
   splitting: false,
   sourcemap: true,
+  dts: true,
   minify: false,
   treeshake: true,
   banner: {
@@ -51,4 +52,3 @@ export default defineConfig({
   },
   onSuccess: copyTemplates,
 });
-

@@ -1,4 +1,3 @@
-const { rspackConfig } = require('@openmrs/rspack-config');
+const config = require('@openmrs/rspack-config');
 
-module.exports = rspackConfig;
-
+module.exports = config.default ?? config;

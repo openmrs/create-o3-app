@@ -14,7 +14,12 @@ export async function generateStandaloneModule(
   moduleConfig: ModuleConfig,
   options: CreateOptions
 ): Promise<void> {
-  const outputDir = join(process.cwd(), projectConfig.projectName);
+  // For O3 modules, directory name should match package name including scope
+  // e.g., @openmrs/esm-billing -> openmrs-esm-billing
+  const directoryName = projectConfig.packageName.startsWith('@')
+    ? projectConfig.packageName.slice(1).replace('/', '-')
+    : projectConfig.packageName;
+  const outputDir = join(process.cwd(), directoryName);
   const spinner = ora('[1/4] Generating standalone module...').start();
 
   try {
@@ -40,7 +45,16 @@ export async function generateStandaloneModule(
 
     // Generate files from template
     spinner.text = '[2/4] Generating files from template...';
-    const fileCount = await generateFiles(projectConfig, moduleConfig, options, process.cwd());
+    const projectConfigForFiles = {
+      ...projectConfig,
+      packageLocation: directoryName,
+    };
+    const fileCount = await generateFiles(
+      projectConfigForFiles,
+      moduleConfig,
+      options,
+      process.cwd()
+    );
     spinner.text = `[2/4] Generated ${fileCount} files from template`;
 
     if (options.dryRun) {
@@ -59,6 +73,8 @@ export async function generateStandaloneModule(
     // Install dependencies (skip in dry run)
     if (!options.dryRun) {
       spinner.text = '[4/4] Installing dependencies...';
+      spinner.stop();
+      logger.info('[4/4] Installing dependencies...');
       await installDependencies(outputDir, options);
     } else {
       logger.info('[DRY RUN] Would install dependencies');

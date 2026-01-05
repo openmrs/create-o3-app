@@ -9,6 +9,11 @@ yarn install
 yarn start
 \`\`\`
 
+{{#if routes}}
+Once started, your module will be available at:
+**http://localhost:8080/openmrs/spa/{{routes.[0].route}}**
+
+{{/if}}
 ## What's included
 
 - ✅ OpenMRS 3.0 microfrontend setup
@@ -101,3 +106,21 @@ yarn build
 \`\`\`bash
 yarn test
 \`\`\`
+
+## Troubleshooting
+
+### `openmrs develop` crashes with `Cannot read properties of undefined (reading 'devServer')`
+
+Ensure your build config exports the default OpenMRS config:
+
+\`\`\`js
+const config = require('@openmrs/webpack-config');
+
+module.exports = config.default ?? config;
+\`\`\`
+
+For rspack, use `@openmrs/rspack-config` in the same pattern.
+
+### Yarn peer dependency warnings (dayjs, i18next, single-spa, swr, react-is, sass)
+
+If you see missing peer dependency warnings, add the missing deps and align `react-i18next` to `11.x` in your `package.json`, then re-run `yarn install`.

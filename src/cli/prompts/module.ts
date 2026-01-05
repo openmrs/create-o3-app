@@ -1,7 +1,7 @@
 import prompts from 'prompts';
+import chalk from 'chalk';
 import type { ProjectConfig, ModuleConfig, CreateOptions } from '../../types/index.js';
 import {
-  validateRoutePath,
   validateComponentName,
   validateExtensionName,
   validateSlotName,
@@ -9,15 +9,22 @@ import {
 } from '../../validators/index.js';
 
 export async function promptModuleConfig(
-  _projectConfig: ProjectConfig,
+  projectConfig: ProjectConfig,
   options: CreateOptions
 ): Promise<ModuleConfig> {
-  // Check if we're in non-interactive mode (CI, no TTY, or flags provided)
+  // Check if we're in non-interactive mode (CI, no TTY, flags provided, or defaulted to standalone)
   const componentName = options.routeComponent;
+  // If project was defaulted to standalone (no flags provided), treat as non-interactive
+  const wasDefaultedToStandalone =
+    !options.standalone && !options.monorepo && !options.newMonorepo && !projectConfig.isMonorepo;
   const isNonInteractive =
     options.quiet ||
     process.env.CI === 'true' ||
     !process.stdin.isTTY ||
+    options.standalone ||
+    options.monorepo ||
+    options.newMonorepo ||
+    wasDefaultedToStandalone ||
     (options.route && componentName);
 
   // Determine module type from options
@@ -29,24 +36,9 @@ export async function promptModuleConfig(
   if (options.route || componentName) {
     // User provided route/component, assume page
     moduleType = 'page';
-  } else if (isNonInteractive) {
-    // Non-interactive mode, default to page
-    moduleType = 'page';
   } else {
-    // Prompt for module type
-    const response = await prompts({
-      type: 'select',
-      name: 'type',
-      message: 'What type of module are you creating?',
-      choices: [
-        { title: 'Page (route-based)', value: 'page' },
-        { title: 'Extension (slot-based)', value: 'extension' },
-        { title: 'Both (pages and extensions)', value: 'both' },
-        { title: 'Modal only', value: 'modal' },
-      ],
-      initial: 0,
-    });
-    moduleType = response.type as 'page' | 'extension' | 'both' | 'modal';
+    // Default to page type when no flags provided (better UX, avoids hanging prompts)
+    moduleType = 'page';
   }
 
   const config: ModuleConfig = {
@@ -66,52 +58,35 @@ export async function promptModuleConfig(
         online: true,
         offline: true,
       });
+
+      // Show URL info for the provided route
+      if (!isNonInteractive) {
+        console.log(chalk.cyan(`📍 Your module will be available at: http://localhost:8080/openmrs/spa${options.route}`));
+      }
     } else {
-      // Otherwise prompt
-      let addMore = true;
-      while (addMore) {
-        const route = await prompts({
-          type: 'text',
-          name: 'path',
-          message: 'Route path:',
-          initial: options.route,
-          validate: (value: string) => {
-            if (!value) return 'Route path is required';
-            const validation = validateRoutePath(value);
-            if (!validation.success) {
-              return validation.errors[0] || 'Invalid route path';
-            }
-            return true;
-          },
-        });
-        const component = await prompts({
-          type: 'text',
-          name: 'name',
-          message: 'Component name for this route:',
-          initial: componentName || undefined,
-          hint: 'PascalCase recommended (e.g., PatientList)',
-          validate: (value: string) => {
-            if (!value) return 'Component name is required';
-            const validation = validateComponentName(value);
-            if (!validation.success) {
-              return validation.errors[0] || 'Invalid component name';
-            }
-            return true;
-          },
-        });
-        config.routes.push({
-          path: route.path,
-          componentName: component.name,
-          online: true,
-          offline: true,
-        });
-        const more = await prompts({
-          type: 'confirm',
-          name: 'addMore',
-          message: 'Add more routes?',
-          initial: false,
-        });
-        addMore = more.addMore;
+      // Always create a default route when no route flags provided (avoids hanging prompts)
+      const defaultRoute = `/${projectConfig.projectName}`;
+      const defaultComponent = projectConfig.projectName
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+
+      config.routes.push({
+        path: defaultRoute,
+        componentName: defaultComponent,
+        online: true,
+        offline: true,
+      });
+
+      // Show URL info for the created route
+      if (!isNonInteractive) {
+        console.log(chalk.cyan(`📍 Your module will be available at: http://localhost:8080/openmrs/spa${defaultRoute}`));
+      }
+
+      // Only prompt for more routes in truly interactive mode (not when defaulting)
+      if (!isNonInteractive && process.stdin.isTTY) {
+        // This is a truly interactive session - could prompt for more routes
+        // But for now, we'll skip to avoid hanging
       }
     }
   }

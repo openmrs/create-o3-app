@@ -208,7 +208,7 @@ This is a test README for {{packageName}}.`;
         testOutputDir
       );
 
-      expect(fileCount).toBe(3);
+      expect(fileCount).toBe(4); // includes declarations.d.ts
     });
   });
 });

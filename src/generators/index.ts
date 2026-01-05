@@ -52,9 +52,9 @@ export async function createProject(
     await generateStandaloneModule(projectConfig, moduleConfig, options);
   }
 
-  // O3 projects always use yarn (yarn 3+)
-  const startCommand = 'yarn start';
-  const installCommand = 'yarn install';
+  // O3 templates pin yarn via packageManager; use Corepack to respect that version
+  const startCommand = 'corepack yarn start';
+  const installCommand = 'corepack yarn install';
 
   // Show success message
   showSuccessMessage(projectConfig, moduleConfig, options, startCommand, installCommand);
@@ -70,7 +70,15 @@ function showSuccessMessage(
   startCommand: string,
   installCommand: string
 ): void {
-  const projectName = projectConfig.packageLocation || projectConfig.projectName;
+  // For standalone modules, use package name including scope as directory name
+  // For monorepo modules, use packageLocation
+  const directoryName = projectConfig.isNewMonorepo
+    ? projectConfig.projectName
+    : projectConfig.packageLocation ||
+      (projectConfig.packageName.startsWith('@')
+        ? projectConfig.packageName.slice(1).replace('/', '-')
+        : projectConfig.packageName);
+  const projectName = projectConfig.packageLocation || directoryName;
 
   console.log(chalk.green(`\n✨ Successfully created ${projectConfig.projectName}!\n`));
 
@@ -95,6 +103,13 @@ function showSuccessMessage(
 
   // Context-aware documentation links
   const hasRoutes = moduleConfig.routes && moduleConfig.routes.length > 0;
+  
+  // Show direct URL for routes
+  if (hasRoutes && moduleConfig.routes && moduleConfig.routes.length > 0) {
+    const primaryRoute = moduleConfig.routes[0].path;
+    console.log(chalk.cyan(`\n🌐 Your module will be available at:`));
+    console.log(chalk.gray(`   http://localhost:8080/openmrs/spa${primaryRoute}`));
+  }
   const hasExtensions = moduleConfig.extensions && moduleConfig.extensions.length > 0;
 
   console.log(chalk.cyan('\n📚 Learn more about O3 development:'));
@@ -130,8 +145,10 @@ function showSuccessMessage(
   console.log(chalk.gray('   • Testing Guide: https://o3-docs.openmrs.org/docs/testing'));
 
   console.log(chalk.cyan('\n💡 Pro tips:'));
-  console.log(chalk.gray('   • Use `yarn run extract-translations` to update translation files'));
-  console.log(chalk.gray('   • Run `yarn test` frequently during development'));
+  console.log(
+    chalk.gray('   • Use `corepack yarn run extract-translations` to update translation files')
+  );
+  console.log(chalk.gray('   • Run `corepack yarn test` frequently during development'));
   console.log(
     chalk.gray('   • Check out real examples: https://github.com/openmrs/openmrs-esm-patient-chart')
   );

@@ -219,6 +219,47 @@ my-module/
 - **Git Hooks** - Husky pre-commit and pre-push hooks
 - **Code Quality** - ESLint, Prettier, lint-staged
 
+## Troubleshooting
+
+### `openmrs develop` crashes with `Cannot read properties of undefined (reading 'devServer')`
+
+This usually means your `webpack.config.js` or `rspack.config.js` is exporting an undefined value. Make sure you export the default config from the OpenMRS build tooling:
+
+```js
+const config = require('@openmrs/webpack-config');
+
+module.exports = config.default ?? config;
+```
+
+For rspack, use `@openmrs/rspack-config` in the same pattern.
+
+### Yarn peer dependency warnings (dayjs, i18next, single-spa, swr, react-is, sass)
+
+If you see warnings about missing peers, add the missing dependencies and align `react-i18next` with the framework's peer range:
+
+```json
+{
+  "peerDependencies": {
+    "dayjs": "1.x",
+    "i18next": "21.x",
+    "react-i18next": "11.x",
+    "react-is": "18.x",
+    "sass": "1.x",
+    "single-spa": "6.x",
+    "swr": "2.x"
+  },
+  "devDependencies": {
+    "dayjs": "^1.11.13",
+    "i18next": "^21.0.0",
+    "react-i18next": "^11.0.0",
+    "react-is": "^18.3.1",
+    "sass": "^1.33.0",
+    "single-spa": "^6.0.0",
+    "swr": "^2.0.0"
+  }
+}
+```
+
 ## Development
 
 ### Prerequisites

@@ -40,6 +40,15 @@ export async function createCommand(
       console.log(chalk.yellow('🔍 Dry run mode - no files will be created\n'));
     }
 
+    // Show helpful message if running interactively without flags
+    if (!options.standalone && !options.monorepo && !options.newMonorepo && !options.quiet) {
+      console.log(
+        chalk.cyan(
+          '💡 Tip: Use --standalone --route "/path" --route-component "Name" to skip prompts\n'
+        )
+      );
+    }
+
     // Start creation process
     const spinner = ora('Creating project...').start();
 

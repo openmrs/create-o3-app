@@ -91,7 +91,7 @@ describe('tsconfig.json.hbs Integration', () => {
       expect(parsed.compilerOptions).toBeDefined();
       expect(parsed.compilerOptions.target).toBe('es2015');
       expect(parsed.compilerOptions.module).toBe('esnext');
-      expect(parsed.compilerOptions.jsx).toBe('react');
+      expect(parsed.compilerOptions.jsx).toBe('react-jsx');
       expect(parsed.compilerOptions.moduleResolution).toBe('node');
       expect(parsed.compilerOptions.esModuleInterop).toBe(true);
       expect(parsed.compilerOptions.skipLibCheck).toBe(true);
@@ -112,7 +112,7 @@ describe('tsconfig.json.hbs Integration', () => {
 
       // Verify include and types
       expect(parsed.include).toEqual(['src/**/*']);
-      expect(parsed.types).toEqual(['@testing-library/jest-dom', 'lodash']);
+      expect(parsed.types).toEqual(['@testing-library/jest-dom', 'lodash', 'react', 'react-dom']);
     } finally {
       // Clean up test templates
       if (existsSync(testTemplatePath)) {

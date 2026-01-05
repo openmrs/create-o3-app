@@ -324,5 +324,29 @@ export async function generateFiles(
     fileCount++;
   }
 
+  // Always create declarations.d.ts file for SCSS module declarations
+  const declarationsContent = `declare module '*.scss' {
+  const content: { [className: string]: string };
+  export default content;
+}
+
+declare module '*.css' {
+  const content: { [className: string]: string };
+  export default content;
+}
+`;
+  const srcDir = join(outputDir, 'src');
+  const declarationsPath = join(srcDir, 'declarations.d.ts');
+  if (!options.dryRun) {
+    // Ensure src directory exists before writing declarations.d.ts
+    if (!existsSync(srcDir)) {
+      mkdirSync(srcDir, { recursive: true });
+    }
+    writeFileSync(declarationsPath, declarationsContent, 'utf-8');
+    fileCount++;
+  } else {
+    console.log(`[DRY RUN] Would create: ${declarationsPath}`);
+  }
+
   return fileCount;
 }

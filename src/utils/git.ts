@@ -15,7 +15,16 @@ export async function initializeGit(projectPath: string): Promise<void> {
     }
 
     // Initialize repository
-    await git.init();
+    try {
+      await git.init(['--initial-branch=main']);
+    } catch {
+      await git.init();
+      try {
+        await git.branch(['-M', 'main']);
+      } catch {
+        // Best-effort; continue if branch rename fails
+      }
+    }
 
     // Create initial commit
     await git.add('.');

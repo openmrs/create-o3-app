@@ -12,13 +12,20 @@ export async function promptProjectConfig(
   options: CreateOptions,
   monorepoContext: MonorepoContext
 ): Promise<ProjectConfig> {
-  const isNonInteractive = options.quiet || process.env.CI === 'true' || !process.stdin.isTTY;
+  // Consider non-interactive if quiet, CI, no TTY, or project type flags are provided
+  const isNonInteractive =
+    options.quiet ||
+    process.env.CI === 'true' ||
+    !process.stdin.isTTY ||
+    options.standalone ||
+    options.monorepo ||
+    options.newMonorepo;
   // If project name not provided, prompt for it
   if (!projectName) {
     const response = await prompts({
       type: 'text',
       name: 'projectName',
-      message: 'Project name:',
+      message: 'Project name (e.g., "patient-chart" → @openmrs/esm-patient-chart):',
       validate: (value: string) => {
         const validation = validateProjectName(value);
         if (!validation.success) {
@@ -32,6 +39,22 @@ export async function promptProjectConfig(
 
   if (!projectName) {
     throw new Error('Project name is required');
+  }
+
+  // Normalize project name by removing common OpenMRS prefixes
+  const normalizeProjectName = (name: string): string => {
+    return name
+      .replace(/^openmrs-esm-/, '') // Remove "openmrs-esm-" prefix
+      .replace(/^esm-/, '')         // Remove "esm-" prefix
+      .replace(/^openmrs-/, '');    // Remove "openmrs-" prefix
+  };
+
+  // Normalize the project name to avoid redundant prefixes
+  const originalProjectName = projectName;
+  projectName = normalizeProjectName(projectName);
+  
+  if (originalProjectName !== projectName) {
+    console.log(chalk.cyan(`💡 Normalized project name from "${originalProjectName}" to "${projectName}"`));
   }
 
   // Package name
@@ -53,26 +76,9 @@ export async function promptProjectConfig(
     packageName = defaultPackageName;
   }
 
-  // Description (always prompt in interactive mode, use default in non-interactive)
-  let description: string;
-  if (isNonInteractive) {
-    description = `${projectName} frontend module for O3`;
-  } else {
-    const descriptionResponse = await prompts({
-      type: 'text',
-      name: 'description',
-      message: 'Description:',
-      initial: `${projectName} frontend module for O3`,
-      validate: (value: string) => {
-        const validation = validateDescription(value);
-        if (!validation.success) {
-          return validation.errors[0] || 'Invalid description';
-        }
-        return true;
-      },
-    });
-    description = descriptionResponse.description as string;
-  }
+  // Description (use default - description prompt is optional)
+  // We skip the description prompt to avoid hanging in terminals where prompts aren't visible
+  const description = `${projectName} frontend module for O3`;
 
   // Validate description
   const descriptionValidation = validateDescription(description);
@@ -105,18 +111,11 @@ export async function promptProjectConfig(
     });
     isMonorepo = response.useMonorepo;
   } else {
-    const response = await prompts({
-      type: 'select',
-      name: 'projectType',
-      message: 'Project type:',
-      choices: [
-        { title: 'Standalone module', value: 'standalone' },
-        { title: 'New monorepo with this module', value: 'new-monorepo' },
-      ],
-      initial: 0,
-    });
-    isNewMonorepo = response.projectType === 'new-monorepo';
-    isMonorepo = isNewMonorepo;
+    // Default to standalone when no flags provided (better UX, avoids hanging prompts)
+    console.log(chalk.cyan('ℹ️  No project type specified. Defaulting to standalone module.'));
+    console.log(chalk.gray('   Use --standalone, --monorepo, or --new-monorepo to be explicit.\n'));
+    isMonorepo = false;
+    isNewMonorepo = false;
   }
 
   // Package location (for monorepo)
