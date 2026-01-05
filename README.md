@@ -104,35 +104,36 @@ This will show you all files that would be created without actually creating the
 
 ## Package manager
 
-Generated O3 projects use **yarn** by default as specified in the template's `package.json`. The CLI will:
+Generated O3 projects **always use yarn** (yarn 3+) as this is the OpenMRS 3 standard. The CLI will:
 
+- Always use yarn for all generated O3 modules
 - Use yarn for new standalone projects
-- Detect existing package managers (yarn/npm/pnpm) in monorepos and use the appropriate one
+- Use yarn when adding modules to existing monorepos (O3 standard)
 - Install dependencies automatically unless you use `--dry-run`
 
 ## Command-line options
 
 ### Project options
 
-| Option                  | Description                        | Default          |
-| ----------------------- | ---------------------------------- | ---------------- |
-| `--package-name <name>` | NPM package name                   | `@openmrs/esm-*` |
-| `--rspack`              | Use rspack instead of webpack      | `webpack`        |
+| Option                  | Description                   | Default          |
+| ----------------------- | ----------------------------- | ---------------- |
+| `--package-name <name>` | NPM package name              | `@openmrs/esm-*` |
+| `--rspack`              | Use rspack instead of webpack | `webpack`        |
 
 ### Project type options
 
-| Option            | Description                          |
-| ----------------- | ------------------------------------ |
-| `--standalone`    | Create standalone module (default)   |
-| `--monorepo`      | Create module in existing monorepo   |
-| `--new-monorepo`  | Create new monorepo root             |
+| Option           | Description                        |
+| ---------------- | ---------------------------------- |
+| `--standalone`   | Create standalone module (default) |
+| `--monorepo`     | Create module in existing monorepo |
+| `--new-monorepo` | Create new monorepo root           |
 
 ### Module configuration
 
-| Option                      | Description                          |
-| --------------------------- | ------------------------------------ |
-| `--route <route>`           | Route path for page-based modules    |
-| `--route-component <name>`  | Component name for the route         |
+| Option                     | Description                       |
+| -------------------------- | --------------------------------- |
+| `--route <route>`          | Route path for page-based modules |
+| `--route-component <name>` | Component name for the route      |
 
 **Note:** `--route` and `--route-component` work together to create page-based
 modules. Route paths can optionally start with `/` but must not end with `/`.
@@ -140,10 +141,10 @@ Example: `--route "/patients" --route-component "PatientList"`.
 
 ### Feature flags
 
-| Option        | Description              | Default |
-| ------------- | ------------------------ | ------- |
-| `--no-git`    | Skip git initialization  | `false` |
-| `--no-ci`     | Skip CI workflow         | `false` |
+| Option     | Description             | Default |
+| ---------- | ----------------------- | ------- |
+| `--no-git` | Skip git initialization | `false` |
+| `--no-ci`  | Skip CI workflow        | `false` |
 
 ### Output options
 
@@ -297,7 +298,7 @@ create-o3-app test-module --dry-run
 3. **Monorepo Detection** - Automatically detects if you're in a monorepo
 4. **File Generation** - Generates files with proper templating and variable substitution
 5. **Git Integration** - Optionally initializes git and sets up remote
-6. **Package Manager** - Uses yarn by default for O3 projects, detects existing package managers for monorepos
+6. **Package Manager** - Always uses yarn (yarn 3+) for O3 projects, as per O3 standards
 
 ## Contributing
 
