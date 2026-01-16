@@ -42,7 +42,7 @@ describe('generateStandaloneModule', () => {
       projectName: 'billing',
       packageName: '@openmrs/esm-billing',
       description: 'billing frontend module for O3',
-      buildTool: 'webpack',
+      buildTool: 'rspack',
       isMonorepo: false,
       isNewMonorepo: false,
       git: false,

@@ -113,13 +113,19 @@ yarn test
 
 Ensure your build config exports the default OpenMRS config:
 
+For rspack (default):
+\`\`\`js
+const config = require('@openmrs/rspack-config');
+
+module.exports = config.default ?? config;
+\`\`\`
+
+For webpack:
 \`\`\`js
 const config = require('@openmrs/webpack-config');
 
 module.exports = config.default ?? config;
 \`\`\`
-
-For rspack, use `@openmrs/rspack-config` in the same pattern.
 
 ### Yarn peer dependency warnings (dayjs, i18next, single-spa, swr, react-is, sass)
 

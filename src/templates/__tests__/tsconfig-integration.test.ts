@@ -29,7 +29,7 @@ describe('tsconfig.json.hbs Integration', () => {
     projectName: 'test-tsconfig-module',
     packageName: '@test/esm-test-tsconfig',
     description: 'A test for tsconfig generation',
-    buildTool: 'webpack',
+    buildTool: 'rspack',
     isMonorepo: false,
     isNewMonorepo: false,
     git: true,

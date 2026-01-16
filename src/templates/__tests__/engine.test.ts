@@ -44,7 +44,7 @@ describe('Template Engine', () => {
     projectName: 'test-module',
     packageName: '@test/esm-test-module',
     description: 'A test module',
-    buildTool: 'webpack',
+    buildTool: 'rspack',
     isMonorepo: false,
     isNewMonorepo: false,
     packageLocation: undefined,
@@ -161,6 +161,12 @@ This is a test README for {{packageName}}.`;
       );
 
       writeFileSync(
+        join(testTemplatesDir, 'config', 'rspack.config.js.hbs'),
+        `module.exports = {
+  name: '{{projectName}}'
+};`
+      );
+      writeFileSync(
         join(testTemplatesDir, 'config', 'webpack.config.js.hbs'),
         `module.exports = {
   name: '{{projectName}}'
@@ -172,13 +178,43 @@ This is a test README for {{packageName}}.`;
       // Check all files are created with correct extensions
       expect(existsSync(join(testOutputDir, 'test-module', 'package.json'))).toBe(true);
       expect(existsSync(join(testOutputDir, 'test-module', 'src', 'index.ts'))).toBe(true);
-      expect(existsSync(join(testOutputDir, 'test-module', 'config', 'webpack.config.js'))).toBe(
+      expect(existsSync(join(testOutputDir, 'test-module', 'config', 'rspack.config.js'))).toBe(
         true
+      );
+      expect(existsSync(join(testOutputDir, 'test-module', 'config', 'webpack.config.js'))).toBe(
+        false
       );
 
       // Verify .hbs files are not created
       expect(existsSync(join(testOutputDir, 'test-module', 'package.json.hbs'))).toBe(false);
       expect(existsSync(join(testOutputDir, 'test-module', 'src', 'index.ts.hbs'))).toBe(false);
+    });
+
+    it('should exclude rspack config when using webpack', async () => {
+      mkdirSync(join(testTemplatesDir, 'config'), { recursive: true });
+
+      writeFileSync(
+        join(testTemplatesDir, 'config', 'rspack.config.js.hbs'),
+        `module.exports = { name: '{{projectName}}' };`
+      );
+      writeFileSync(
+        join(testTemplatesDir, 'config', 'webpack.config.js.hbs'),
+        `module.exports = { name: '{{projectName}}' };`
+      );
+
+      await generateFiles(
+        { ...mockProjectConfig, buildTool: 'webpack' },
+        mockModuleConfig,
+        mockOptions,
+        testOutputDir
+      );
+
+      expect(existsSync(join(testOutputDir, 'test-module', 'config', 'webpack.config.js'))).toBe(
+        true
+      );
+      expect(existsSync(join(testOutputDir, 'test-module', 'config', 'rspack.config.js'))).toBe(
+        false
+      );
     });
   });
 

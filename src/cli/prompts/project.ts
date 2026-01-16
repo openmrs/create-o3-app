@@ -88,8 +88,8 @@ export async function promptProjectConfig(
     throw new Error(`Invalid description: ${descriptionValidation.errors.join(', ')}`);
   }
 
-  // Build tool (use --rspack flag or default to webpack)
-  const buildTool = options.rspack ? 'rspack' : 'webpack';
+  // Build tool (use --webpack flag or default to rspack)
+  const buildTool = options.webpack ? 'webpack' : 'rspack';
 
   // Determine monorepo strategy
   let isMonorepo = false;

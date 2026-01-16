@@ -1,6 +1,7 @@
 export interface CreateOptions {
   packageName?: string;
   rspack?: boolean;
+  webpack?: boolean;
   standalone?: boolean;
   monorepo?: boolean;
   newMonorepo?: boolean;

@@ -241,6 +241,7 @@ export const moduleConfigSchema = z.object({
 export const createOptionsSchema = z.object({
   packageName: packageNameSchema.optional(),
   rspack: z.boolean().optional(),
+  webpack: z.boolean().optional(),
   standalone: z.boolean().optional(),
   monorepo: z.boolean().optional(),
   newMonorepo: z.boolean().optional(),

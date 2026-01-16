@@ -29,7 +29,7 @@ describe('routes.json Integration', () => {
     projectName: 'test-routes-module',
     packageName: '@test/esm-test-routes',
     description: 'A test for routes generation',
-    buildTool: 'webpack',
+    buildTool: 'rspack',
     isMonorepo: false,
     isNewMonorepo: false,
     git: true,

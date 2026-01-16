@@ -25,6 +25,10 @@ export async function createCommand(
       logger.setQuiet(true);
     }
 
+    if (options.rspack) {
+      logger.warn('The --rspack flag is deprecated; rspack is now the default build tool.');
+    }
+
     // Validate project name if provided
     if (projectName) {
       const nameValidation = validateProjectName(projectName);

@@ -121,7 +121,7 @@ function buildContext(
 /**
  * Check if a file should be excluded from generation
  */
-function shouldExcludeFile(filePath: string, _projectConfig: ProjectConfig): boolean {
+function shouldExcludeFile(filePath: string, projectConfig: ProjectConfig): boolean {
   const relativePath = filePath;
   const excludePatterns = [
     'node_modules',
@@ -136,6 +136,14 @@ function shouldExcludeFile(filePath: string, _projectConfig: ProjectConfig): boo
     'yarn.lock',
     'pnpm-lock.yaml',
   ];
+
+  // Exclude the build tool config file that doesn't match the selected buildTool
+  if (projectConfig.buildTool === 'rspack' && relativePath.includes('webpack.config.js')) {
+    return true;
+  }
+  if (projectConfig.buildTool === 'webpack' && relativePath.includes('rspack.config.js')) {
+    return true;
+  }
 
   return excludePatterns.some((pattern) => relativePath.includes(pattern));
 }

@@ -32,7 +32,8 @@ program
 program
   .argument('[project-name]', 'Name of the project/directory to create')
   .option('--package-name <name>', 'NPM package name (overrides default package name)')
-  .option('--rspack', 'Use rspack instead of webpack as build tool')
+  .option('--rspack', 'Deprecated; rspack is now the default build tool')
+  .option('--webpack', 'Use webpack instead of rspack as build tool')
   .option('--standalone', 'Create standalone module (not in monorepo)')
   .option('--monorepo', 'Create module in existing monorepo (detects monorepo automatically)')
   .option('--new-monorepo', 'Create new monorepo root with this module as first package')
@@ -50,7 +51,7 @@ Examples:
   $ create-o3-app my-module --standalone
   $ create-o3-app my-module --monorepo --route "/patients"
   $ create-o3-app my-module --dry-run
-  $ create-o3-app my-module --package-name "@openmrs/esm-my-module" --rspack
+  $ create-o3-app my-module --package-name "@openmrs/esm-my-module" --webpack
   $ create-o3-app my-module --new-monorepo --route "/patients" --route-component "PatientList"
 
 For more information, visit: https://github.com/openmrs/create-o3-app

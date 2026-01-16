@@ -61,7 +61,7 @@ For CI/CD or automated setups, use flags to skip prompts:
 create-o3-app my-module-name \
   --standalone \
   --package-name "@openmrs/esm-my-module" \
-  --rspack \
+  --webpack \
   --route "/my-route" \
   --route-component "MyComponent" \
   --no-git \
@@ -118,7 +118,8 @@ Generated O3 projects **always use yarn** (yarn 3+) as this is the OpenMRS 3 sta
 | Option                  | Description                   | Default          |
 | ----------------------- | ----------------------------- | ---------------- |
 | `--package-name <name>` | NPM package name              | `@openmrs/esm-*` |
-| `--rspack`              | Use rspack instead of webpack | `webpack`        |
+| `--rspack`              | Deprecated; rspack is default | `rspack`         |
+| `--webpack`             | Use webpack as build tool     | `rspack`         |
 
 ### Project type options
 
@@ -223,15 +224,23 @@ my-module/
 
 ### `openmrs develop` crashes with `Cannot read properties of undefined (reading 'devServer')`
 
-This usually means your `webpack.config.js` or `rspack.config.js` is exporting an undefined value. Make sure you export the default config from the OpenMRS build tooling:
+This usually means your `rspack.config.js` or `webpack.config.js` is exporting an undefined value. Make sure you export the default config from the OpenMRS build tooling:
+
+For rspack (default):
+
+```js
+const config = require('@openmrs/rspack-config');
+
+module.exports = config.default ?? config;
+```
+
+For webpack:
 
 ```js
 const config = require('@openmrs/webpack-config');
 
 module.exports = config.default ?? config;
 ```
-
-For rspack, use `@openmrs/rspack-config` in the same pattern.
 
 ### Yarn peer dependency warnings (dayjs, i18next, single-spa, swr, react-is, sass)
 
