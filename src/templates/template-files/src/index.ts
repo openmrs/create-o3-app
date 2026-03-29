@@ -17,7 +17,7 @@ export function startupApp() {
 {{#if backendDependencies}}
 export const backendDependencies = {
 {{#each backendDependencies}}
-  '{{this}}': '{{@index}}',
+  '{{{this.name}}}': '{{{this.version}}}',
 {{/each}}
 };
 {{else}}
@@ -30,8 +30,8 @@ export const root = getAsyncLifecycle(() => import('./root.component'), options)
 // Extensions
 {{#if extensions}}
 {{#each extensions}}
-export const {{kebabCase this.name}} = getSyncLifecycle(
-  () => import('./{{kebabCase this.name}}.component'),
+export const {{camelCase this.componentName}} = getSyncLifecycle(
+  () => import('./{{kebabCase this.componentName}}.component'),
   options
 );
 {{/each}}
@@ -40,8 +40,8 @@ export const {{kebabCase this.name}} = getSyncLifecycle(
 // Modals
 {{#if modals}}
 {{#each modals}}
-export const {{kebabCase this.name}} = getAsyncLifecycle(
-  () => import('./{{kebabCase this.name}}.component'),
+export const {{camelCase this.componentName}} = getAsyncLifecycle(
+  () => import('./{{kebabCase this.componentName}}.component'),
   options
 );
 {{/each}}
@@ -50,8 +50,8 @@ export const {{kebabCase this.name}} = getAsyncLifecycle(
 // Workspaces
 {{#if workspaces}}
 {{#each workspaces}}
-export const {{kebabCase this.name}} = getAsyncLifecycle(
-  () => import('./{{kebabCase this.name}}.component'),
+export const {{camelCase this.componentName}} = getAsyncLifecycle(
+  () => import('./{{kebabCase this.componentName}}.component'),
   options
 );
 {{/each}}

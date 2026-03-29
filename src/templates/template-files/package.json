@@ -30,12 +30,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openmrs/{{packageName}}.git"
+    "url": "git+https://github.com/openmrs/openmrs-esm-{{projectName}}.git"
   },
   "bugs": {
-    "url": "https://github.com/openmrs/{{packageName}}/issues"
+    "url": "https://github.com/openmrs/openmrs-esm-{{projectName}}/issues"
   },
-  "homepage": "https://github.com/openmrs/{{packageName}}#readme",
+  "homepage": "https://github.com/openmrs/openmrs-esm-{{projectName}}#readme",
   "publishConfig": {
     "access": "public"
   },

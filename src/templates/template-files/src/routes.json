@@ -3,7 +3,7 @@
 {{#if backendDependencies}}
   "backendDependencies": {
 {{#each backendDependencies}}
-    "{{this}}": "^1.0.0"{{#unless @last}},{{/unless}}
+    "{{{this.name}}}": "{{{this.version}}}"{{#unless @last}},{{/unless}}
 {{/each}}
   },
 {{/if}}
@@ -22,7 +22,7 @@
     {
       "name": "{{this.name}}",
       "slot": "{{this.slot}}",
-      "component": "{{kebabCase this.componentName}}"{{#if this.online}},
+      "component": "{{camelCase this.componentName}}"{{#if this.online}},
       "online": {{this.online}}{{/if}}{{#if this.offline}},
       "offline": {{this.offline}}{{/if}}{{#if this.order}},
       "order": {{this.order}}{{/if}}{{#if this.featureFlag}},
@@ -35,7 +35,7 @@
 {{#each modals}}
     {
       "name": "{{this.name}}",
-      "component": "{{kebabCase this.componentName}}"
+      "component": "{{camelCase this.componentName}}"
     }{{#unless @last}},{{/unless}}
 {{/each}}
   ]{{/if}}{{#if workspaces}},
@@ -44,7 +44,7 @@
     {
       "name": "{{this.name}}",
       "title": "{{this.title}}",
-      "component": "{{kebabCase this.componentName}}",
+      "component": "{{camelCase this.componentName}}",
       "type": "{{this.type}}"
     }{{#unless @last}},{{/unless}}
 {{/each}}

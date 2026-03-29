@@ -11,7 +11,7 @@ yarn start
 
 {{#if routes}}
 Once started, your module will be available at:
-**http://localhost:8080/openmrs/spa/{{routes.[0].route}}**
+**http://localhost:8080/openmrs/spa/{{#if (startsWith routes.[0].path '/')}}{{substring routes.[0].path 1}}{{else}}{{routes.[0].path}}{{/if}}**
 
 {{/if}}
 ## What's included
