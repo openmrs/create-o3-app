@@ -6,15 +6,15 @@ vi.mock('fs', () => ({
   mkdirSync: vi.fn(),
 }));
 
-vi.mock('../templates/engine.js', () => ({
+vi.mock('../../templates/engine.js', () => ({
   generateFiles: vi.fn().mockResolvedValue(1),
 }));
 
-vi.mock('../utils/git.js', () => ({
+vi.mock('../../utils/git.js', () => ({
   initializeGit: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('../utils/package-manager.js', () => ({
+vi.mock('../../utils/package-manager.js', () => ({
   installDependencies: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -22,6 +22,7 @@ vi.mock('ora', () => ({
   default: () => ({
     start: () => ({
       text: '',
+      stop: vi.fn(),
       succeed: vi.fn(),
       fail: vi.fn(),
     }),
@@ -37,7 +38,7 @@ describe('generateStandaloneModule', () => {
     vi.clearAllMocks();
   });
 
-  it.skip('writes files into the package-name directory and installs there', async () => {
+  it('writes files into the package-name directory and installs there', async () => {
     const projectConfig = {
       projectName: 'billing',
       packageName: '@openmrs/esm-billing',
