@@ -13,17 +13,6 @@ export function startupApp() {
   defineConfigSchema(moduleName, configSchema);
 }
 
-// Backend dependencies
-{{#if backendDependencies}}
-export const backendDependencies = {
-{{#each backendDependencies}}
-  '{{{this.name}}}': '{{{this.version}}}',
-{{/each}}
-};
-{{else}}
-export const backendDependencies = {};
-{{/if}}
-
 // Root component
 export const root = getAsyncLifecycle(() => import('./root.component'), options);
 
