@@ -33,7 +33,7 @@ export interface ModuleConfig {
   modals?: ModalConfig[];
   workspaces?: WorkspaceConfig[];
   featureFlags?: FeatureFlagConfig[];
-  backendDependencies?: string[];
+  backendDependencies?: BackendDependency[];
   offline?: boolean;
   errorBoundary?: boolean;
   pathAliases?: string[];
@@ -77,6 +77,11 @@ export interface FeatureFlagConfig {
   name: string;
   label: string;
   description: string;
+}
+
+export interface BackendDependency {
+  name: string;
+  version: string;
 }
 
 export interface MonorepoContext {

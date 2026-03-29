@@ -29,16 +29,28 @@ export async function promptModuleConfig(
 
   // Determine module type from options
   // If route/component provided, assume 'page'
-  // If extension-related flags provided, assume 'extension'
-  // Otherwise prompt (unless non-interactive)
+  // Otherwise prompt (unless non-interactive, in which case default to 'page')
   let moduleType: 'page' | 'extension' | 'both' | 'modal' = 'page';
 
   if (options.route || componentName) {
-    // User provided route/component, assume page
     moduleType = 'page';
-  } else {
-    // Default to page type when no flags provided (better UX, avoids hanging prompts)
-    moduleType = 'page';
+  } else if (!isNonInteractive) {
+    const response = await prompts({
+      type: 'select',
+      name: 'moduleType',
+      message: 'Module type:',
+      choices: [
+        { title: 'Page', value: 'page', description: 'A routable page component' },
+        {
+          title: 'Extension',
+          value: 'extension',
+          description: 'An extension that slots into existing UI',
+        },
+        { title: 'Both', value: 'both', description: 'A page with extensions' },
+      ],
+      initial: 0,
+    });
+    moduleType = response.moduleType ?? 'page';
   }
 
   const config: ModuleConfig = {
@@ -234,7 +246,14 @@ export async function promptModuleConfig(
       config.backendDependencies = (backendDeps.dependencies as string)
         .split(',')
         .map((d: string) => d.trim())
-        .filter(Boolean);
+        .filter(Boolean)
+        .map((dep: string) => {
+          const match = dep.match(/^([a-z0-9-_.]+)(>=|@)(.+)$/);
+          if (match) {
+            return { name: match[1], version: `${match[2] === '>=' ? '>=' : ''}${match[3]}` };
+          }
+          return { name: dep, version: '>=0.0.0' };
+        });
     }
   } else {
     config.backendDependencies = undefined;

@@ -98,15 +98,23 @@ export const slotNameSchema = z
   .regex(/^[a-z0-9-]+$/, 'Slot name can only contain lowercase letters, numbers, and hyphens');
 
 /**
- * Backend dependency validation schema
+ * Backend dependency input validation schema
  * Format: "module-name>=version" or "module-name@version"
  */
-export const backendDependencySchema = z
+export const backendDependencyInputSchema = z
   .string()
   .regex(
     /^[a-z0-9-_.]+(>=|@)[\d.]+$/,
     'Backend dependency must be in format "module-name>=version" or "module-name@version"'
   );
+
+/**
+ * Backend dependency object validation schema (parsed form)
+ */
+export const backendDependencySchema = z.object({
+  name: z.string().min(1),
+  version: z.string().min(1),
+});
 
 /**
  * Path alias validation schema

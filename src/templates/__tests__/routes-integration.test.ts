@@ -61,7 +61,10 @@ describe('routes.json Integration', () => {
           order: 5,
         },
       ],
-      backendDependencies: ['fhir2', 'webservices.rest'],
+      backendDependencies: [
+        { name: 'fhir2', version: '>=1.5.0' },
+        { name: 'webservices.rest', version: '>=2.24.0' },
+      ],
     };
 
     const testTemplatePath = join(process.cwd(), 'test-routes-templates');
@@ -101,8 +104,8 @@ describe('routes.json Integration', () => {
 
       // Verify backendDependencies section
       expect(parsed.backendDependencies).toBeDefined();
-      expect(parsed.backendDependencies.fhir2).toBe('^1.0.0');
-      expect(parsed.backendDependencies['webservices.rest']).toBe('^1.0.0');
+      expect(parsed.backendDependencies.fhir2).toBe('>=1.5.0');
+      expect(parsed.backendDependencies['webservices.rest']).toBe('>=2.24.0');
 
       // Verify pages section
       expect(parsed.pages).toBeDefined();
@@ -115,7 +118,7 @@ describe('routes.json Integration', () => {
       expect(parsed.extensions).toHaveLength(1);
       expect(parsed.extensions[0].name).toBe('test-extension');
       expect(parsed.extensions[0].slot).toBe('test-slot');
-      expect(parsed.extensions[0].component).toBe('test-extension-component');
+      expect(parsed.extensions[0].component).toBe('testExtensionComponent');
       expect(parsed.extensions[0].order).toBe(5);
     } finally {
       if (existsSync(testTemplatePath)) {

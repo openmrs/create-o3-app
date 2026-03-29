@@ -8,7 +8,7 @@ import {
   componentNameSchema,
   extensionNameSchema,
   slotNameSchema,
-  backendDependencySchema,
+  backendDependencyInputSchema,
   pathAliasSchema,
   workspaceNameSchema,
   featureFlagNameSchema,
@@ -180,7 +180,7 @@ export function validateSlotName(name: string): ValidationResult {
  */
 export function validateBackendDependency(dep: string): ValidationResult {
   try {
-    backendDependencySchema.parse(dep);
+    backendDependencyInputSchema.parse(dep);
     return { success: true, errors: [] };
   } catch (error) {
     if (error instanceof Error) {

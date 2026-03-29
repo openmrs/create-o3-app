@@ -9,7 +9,7 @@ import {
   componentNameSchema,
   extensionNameSchema,
   slotNameSchema,
-  backendDependencySchema,
+  backendDependencyInputSchema,
 } from '../schemas.js';
 
 describe('Validation Schemas', () => {
@@ -134,16 +134,16 @@ describe('Validation Schemas', () => {
     });
   });
 
-  describe('backendDependencySchema', () => {
+  describe('backendDependencyInputSchema', () => {
     it('should accept valid backend dependencies', () => {
-      expect(() => backendDependencySchema.parse('webservices.rest>=2.24.0')).not.toThrow();
-      expect(() => backendDependencySchema.parse('module@1.0.0')).not.toThrow();
+      expect(() => backendDependencyInputSchema.parse('webservices.rest>=2.24.0')).not.toThrow();
+      expect(() => backendDependencyInputSchema.parse('module@1.0.0')).not.toThrow();
     });
 
     it('should reject invalid backend dependencies', () => {
-      expect(() => backendDependencySchema.parse('webservices.rest')).toThrow();
-      expect(() => backendDependencySchema.parse('module>=')).toThrow();
-      expect(() => backendDependencySchema.parse('')).toThrow();
+      expect(() => backendDependencyInputSchema.parse('webservices.rest')).toThrow();
+      expect(() => backendDependencyInputSchema.parse('module>=')).toThrow();
+      expect(() => backendDependencyInputSchema.parse('')).toThrow();
     });
   });
 });
