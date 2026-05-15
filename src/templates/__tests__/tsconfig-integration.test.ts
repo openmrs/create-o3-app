@@ -111,8 +111,8 @@ describe('tsconfig.json.hbs Integration', () => {
       expect(parsed.compilerOptions.lib).toContain('es2020');
 
       // Verify include and types
-      expect(parsed.include).toEqual(['src/**/*']);
-      expect(parsed.types).toEqual(['@testing-library/jest-dom', 'lodash', 'react', 'react-dom']);
+      expect(parsed.include).toEqual(['src/**/*', 'tools/setup-tests.ts', 'vitest.config.ts']);
+      expect(parsed.types).toEqual(['lodash', 'react', 'react-dom', 'vitest/globals']);
     } finally {
       // Clean up test templates
       if (existsSync(testTemplatePath)) {

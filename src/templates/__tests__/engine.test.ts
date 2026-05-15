@@ -244,7 +244,7 @@ This is a test README for {{packageName}}.`;
         testOutputDir
       );
 
-      expect(fileCount).toBe(4); // includes declarations.d.ts
+      expect(fileCount).toBe(3); // declarations.d.ts now comes from the template tree, not the engine
     });
   });
 });
