@@ -25,21 +25,21 @@ structure that follows O3 conventions.
 
 ## Installation
 
-### Global installation (Recommended)
+### Using npm exec
 
 ```bash
-npm install -g create-o3-app
-# or
-yarn global add create-o3-app
-# or
-pnpm add -g create-o3-app
+npm exec @openmrs/create-o3-app@latest -- my-module-name
 ```
 
-### Using npx (No installation required)
+You can also use `npx`:
 
 ```bash
-npx create-o3-app my-module-name
+npx @openmrs/create-o3-app@latest my-module-name
 ```
+
+The executable is still named `create-o3-app`. The package is published under
+the OpenMRS npm scope because the unscoped `create-o3-app` package name is not
+owned by OpenMRS.
 
 ## Quick start
 
@@ -48,7 +48,7 @@ npx create-o3-app my-module-name
 Simply run the command with your project name:
 
 ```bash
-create-o3-app my-module-name
+npm exec @openmrs/create-o3-app@latest -- my-module-name
 ```
 
 The CLI will guide you through a series of prompts to configure your module.
@@ -58,7 +58,7 @@ The CLI will guide you through a series of prompts to configure your module.
 For CI/CD or automated setups, use flags to skip prompts:
 
 ```bash
-create-o3-app my-module-name \
+npm exec @openmrs/create-o3-app@latest -- my-module-name \
   --standalone \
   --package-name "@openmrs/esm-my-module" \
   --webpack \
@@ -73,13 +73,13 @@ create-o3-app my-module-name \
 ### Create a standalone module
 
 ```bash
-create-o3-app patient-list --standalone
+npm exec @openmrs/create-o3-app@latest -- patient-list --standalone
 ```
 
 ### Create a module in existing monorepo
 
 ```bash
-create-o3-app patient-list --monorepo
+npm exec @openmrs/create-o3-app@latest -- patient-list --monorepo
 ```
 
 The CLI automatically detects if you're in a monorepo. Use `--monorepo` to
@@ -88,7 +88,7 @@ explicitly create the module in the existing monorepo structure.
 ### Create a new monorepo
 
 ```bash
-create-o3-app my-monorepo --new-monorepo
+npm exec @openmrs/create-o3-app@latest -- my-monorepo --new-monorepo
 ```
 
 This creates a new monorepo root directory with a `package.json` configured
@@ -97,7 +97,7 @@ with workspaces, and places the module as the first package in the monorepo.
 ### Preview changes (Dry run)
 
 ```bash
-create-o3-app my-module --dry-run
+npm exec @openmrs/create-o3-app@latest -- my-module --dry-run
 ```
 
 This will show you all files that would be created without actually creating them.
@@ -158,8 +158,8 @@ Example: `--route "/patients" --route-component "PatientList"`.
 ### Help
 
 ```bash
-create-o3-app --help
-create-o3-app --version
+npm exec @openmrs/create-o3-app@latest -- --help
+npm exec @openmrs/create-o3-app@latest -- --version
 ```
 
 ## Generated project structure
