@@ -18,11 +18,4 @@ export const configSchema = {
   // },
 };
 
-export type ConfigSchema = {
-  // TypeScript type derived from schema
-  // Example:
-  // logo: {
-  //   src: string;
-  //   alt: string;
-  // };
-};
+export type ConfigSchema = Record<string, never>;
