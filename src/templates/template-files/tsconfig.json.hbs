@@ -5,7 +5,7 @@
     "target": "es2015",
     "allowSyntheticDefaultImports": true,
     "jsx": "react-jsx",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "lib": [
@@ -35,11 +35,9 @@
       "@utils/*": ["./src/utils/*"]
 {{/if}},
       "@tools/*": ["./tools/*"],
-      "@constants": ["./src/constants"],
-      "@openmrs/*": ["./node_modules/@openmrs/*"]
+      "@constants": ["./src/constants"]
     }
   },
   "include": ["src/**/*", "tools/setup-tests.ts", "vitest.config.ts"],
   "types": ["lodash", "react", "react-dom", "vitest/globals"]
 }
-
