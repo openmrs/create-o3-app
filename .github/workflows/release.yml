@@ -41,17 +41,14 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
+          generate_release_notes: true
           body: |
-            ## Changes in ${{ github.ref_name }}
-            
-            See the [changelog](https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.ref_name }}) for details.
-            
             ## Installation
-            
+
             ```bash
-            npm create @openmrs/o3-app@${{ github.ref_name }} my-module-name
+            npm create @openmrs/o3-app@latest my-module-name
             # or
-            npx @openmrs/create-o3-app@${{ github.ref_name }} my-module-name
+            npx @openmrs/create-o3-app@latest my-module-name
             ```
           draft: false
           prerelease: false
