@@ -92,6 +92,21 @@ describe('Template Engine', () => {
       expect(parsed.test).toBe(true);
     });
 
+    it('renders the .gitignore.hbs dotfile template to .gitignore', async () => {
+      // npm strips a literal .gitignore from published tarballs, so the
+      // template ships as .gitignore.hbs. It must render to .gitignore and
+      // must not be dropped by the file-exclusion filter (the old '.git'
+      // exclude pattern matched the substring in '.gitignore').
+      writeFileSync(join(testTemplatesDir, '.gitignore.hbs'), 'node_modules/\ndist/\n.env.local\n');
+
+      await generateFiles(mockProjectConfig, mockModuleConfig, mockOptions, testOutputDir);
+
+      const outputPath = join(testOutputDir, 'test-module', '.gitignore');
+      expect(existsSync(outputPath)).toBe(true);
+      expect(existsSync(join(testOutputDir, 'test-module', '.gitignore.hbs'))).toBe(false);
+      expect(readFileSync(outputPath, 'utf-8')).toContain('node_modules/');
+    });
+
     it('should process tsconfig.json.hbs template correctly', async () => {
       // Create a mock tsconfig.json.hbs template
       const templateContent = `{

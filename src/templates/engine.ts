@@ -125,7 +125,6 @@ function shouldExcludeFile(filePath: string, projectConfig: ProjectConfig): bool
   const relativePath = filePath;
   const excludePatterns = [
     'node_modules',
-    '.git',
     'dist',
     'build',
     '.next',

@@ -34,7 +34,7 @@ jobs:
       - name: Publish to npm
         run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -49,9 +49,9 @@ jobs:
             ## Installation
             
             ```bash
-            npm install -g create-o3-app@${{ github.ref_name }}
+            npm create @openmrs/o3-app@${{ github.ref_name }} my-module-name
             # or
-            npx create-o3-app@${{ github.ref_name }} my-module-name
+            npx @openmrs/create-o3-app@${{ github.ref_name }} my-module-name
             ```
           draft: false
           prerelease: false
