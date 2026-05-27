@@ -1,5 +1,5 @@
 {
-  "name": "create-o3-app",
+  "name": "@openmrs/create-o3-app",
   "version": "1.0.0",
   "description": "CLI tool to scaffold OpenMRS 3 frontend modules",
   "type": "module",
@@ -24,7 +24,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build && npm run test",
-    "prepare": "husky"
+    "prepare": "npm run build && husky"
   },
   "lint-staged": {
     "*.{json,md}": [
@@ -49,6 +49,9 @@
     "url": "https://github.com/openmrs/create-o3-app/issues"
   },
   "homepage": "https://github.com/openmrs/create-o3-app#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^11.1.0",

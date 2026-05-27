@@ -49,9 +49,9 @@ jobs:
             ## Installation
             
             ```bash
-            npm install -g create-o3-app@${{ github.ref_name }}
+            npm create @openmrs/o3-app@${{ github.ref_name }} my-module-name
             # or
-            npx create-o3-app@${{ github.ref_name }} my-module-name
+            npx @openmrs/create-o3-app@${{ github.ref_name }} my-module-name
             ```
           draft: false
           prerelease: false
