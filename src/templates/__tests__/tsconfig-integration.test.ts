@@ -92,7 +92,7 @@ describe('tsconfig.json.hbs Integration', () => {
       expect(parsed.compilerOptions.target).toBe('es2015');
       expect(parsed.compilerOptions.module).toBe('esnext');
       expect(parsed.compilerOptions.jsx).toBe('react-jsx');
-      expect(parsed.compilerOptions.moduleResolution).toBe('node');
+      expect(parsed.compilerOptions.moduleResolution).toBe('bundler');
       expect(parsed.compilerOptions.esModuleInterop).toBe(true);
       expect(parsed.compilerOptions.skipLibCheck).toBe(true);
       expect(parsed.compilerOptions.resolveJsonModule).toBe(true);
@@ -104,6 +104,7 @@ describe('tsconfig.json.hbs Integration', () => {
       expect(parsed.compilerOptions.paths['@hooks/*']).toEqual(['./src/hooks/*']);
       expect(parsed.compilerOptions.paths['@resources/*']).toEqual(['./src/resources/*']);
       expect(parsed.compilerOptions.paths['@utils/*']).toEqual(['./src/utils/*']);
+      expect(parsed.compilerOptions.paths['@openmrs/*']).toBeUndefined();
 
       // Verify lib array
       expect(parsed.compilerOptions.lib).toContain('dom');
@@ -163,6 +164,7 @@ describe('tsconfig.json.hbs Integration', () => {
       expect(parsed.compilerOptions.paths['@hooks/*']).toBeUndefined();
       expect(parsed.compilerOptions.paths['@resources/*']).toBeUndefined();
       expect(parsed.compilerOptions.paths['@utils/*']).toBeUndefined();
+      expect(parsed.compilerOptions.paths['@openmrs/*']).toBeUndefined();
     } finally {
       if (existsSync(testTemplatePath)) {
         rmSync(testTemplatePath, { recursive: true });
