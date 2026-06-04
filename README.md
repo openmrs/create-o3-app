@@ -25,21 +25,27 @@ structure that follows O3 conventions.
 
 ## Installation
 
-### Using npm exec
+There's nothing to install. Run the CLI directly with `npm create`:
 
 ```bash
-npm exec @openmrs/create-o3-app@latest -- my-module-name
+npm create @openmrs/o3-app@latest my-module-name
 ```
 
-You can also use `npx`:
+You can also use `npx`, which is equivalent:
 
 ```bash
 npx @openmrs/create-o3-app@latest my-module-name
 ```
 
-The executable is still named `create-o3-app`. The package is published under
-the OpenMRS npm scope because the unscoped `create-o3-app` package name is not
-owned by OpenMRS.
+The package is published under the OpenMRS npm scope because the unscoped
+`create-o3-app` package name is not owned by OpenMRS. The executable is still
+named `create-o3-app`.
+
+> **Passing flags:** with `npx`, append flags directly (`npx
+> @openmrs/create-o3-app@latest my-module-name --standalone`). With `npm
+> create`, separate them from the project name with a `--` (`npm create
+> @openmrs/o3-app@latest my-module-name -- --standalone`); without it, npm
+> intercepts the flags. The flagged examples below use `npx` for that reason.
 
 ## Quick start
 
@@ -48,7 +54,7 @@ owned by OpenMRS.
 Simply run the command with your project name:
 
 ```bash
-npm exec @openmrs/create-o3-app@latest -- my-module-name
+npm create @openmrs/o3-app@latest my-module-name
 ```
 
 The CLI will guide you through a series of prompts to configure your module.
@@ -58,7 +64,7 @@ The CLI will guide you through a series of prompts to configure your module.
 For CI/CD or automated setups, use flags to skip prompts:
 
 ```bash
-npm exec @openmrs/create-o3-app@latest -- my-module-name \
+npx @openmrs/create-o3-app@latest my-module-name \
   --standalone \
   --package-name "@openmrs/esm-my-module" \
   --webpack \
@@ -73,13 +79,13 @@ npm exec @openmrs/create-o3-app@latest -- my-module-name \
 ### Create a standalone module
 
 ```bash
-npm exec @openmrs/create-o3-app@latest -- patient-list --standalone
+npx @openmrs/create-o3-app@latest patient-list --standalone
 ```
 
 ### Create a module in existing monorepo
 
 ```bash
-npm exec @openmrs/create-o3-app@latest -- patient-list --monorepo
+npx @openmrs/create-o3-app@latest patient-list --monorepo
 ```
 
 The CLI automatically detects if you're in a monorepo. Use `--monorepo` to
@@ -88,7 +94,7 @@ explicitly create the module in the existing monorepo structure.
 ### Create a new monorepo
 
 ```bash
-npm exec @openmrs/create-o3-app@latest -- my-monorepo --new-monorepo
+npx @openmrs/create-o3-app@latest my-monorepo --new-monorepo
 ```
 
 This creates a new monorepo root directory with a `package.json` configured
@@ -97,7 +103,7 @@ with workspaces, and places the module as the first package in the monorepo.
 ### Preview changes (Dry run)
 
 ```bash
-npm exec @openmrs/create-o3-app@latest -- my-module --dry-run
+npx @openmrs/create-o3-app@latest my-module --dry-run
 ```
 
 This will show you all files that would be created without actually creating them.
@@ -158,8 +164,8 @@ Example: `--route "/patients" --route-component "PatientList"`.
 ### Help
 
 ```bash
-npm exec @openmrs/create-o3-app@latest -- --help
-npm exec @openmrs/create-o3-app@latest -- --version
+npx @openmrs/create-o3-app@latest --help
+npx @openmrs/create-o3-app@latest --version
 ```
 
 ## Generated project structure
