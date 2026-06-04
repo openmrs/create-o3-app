@@ -1,6 +1,6 @@
 {
   "name": "@openmrs/create-o3-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI tool to scaffold OpenMRS 3 frontend modules",
   "type": "module",
   "bin": {
