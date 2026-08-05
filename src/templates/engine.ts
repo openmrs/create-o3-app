@@ -139,6 +139,12 @@ function assertNoOutputCollisions(moduleConfig: ModuleConfig): void {
     owners.set(file, owner);
   };
 
+  // The static root component files are always generated, so a component
+  // named `Root` (or a modal/workspace stripping to the basename `root`)
+  // would silently overwrite them
+  claim('root.component.tsx', 'the app root component');
+  claim('root.scss', 'the app root component');
+
   for (const route of moduleConfig.routes ?? []) {
     const base = toKebabCase(route.componentName);
     const owner = `Page component "${route.componentName}"`;

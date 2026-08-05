@@ -183,6 +183,30 @@ describe('Modal and workspace component generation', () => {
     ).rejects.toThrow(/would both generate src\/delete-thing\.scss/);
   });
 
+  it('rejects components that collide with the static root component files', async () => {
+    const rootPage: ModuleConfig = {
+      type: 'page',
+      routes: [{ path: '/test', componentName: 'Root' }],
+    };
+
+    await expect(
+      generateFiles(mockProjectConfig, rootPage, mockOptions, testOutputDir)
+    ).rejects.toThrow(
+      /Page component "Root" and the app root component would both generate src\/root\.component\.tsx/
+    );
+
+    // A modal stripping to the basename `root` collides on the stylesheet
+    const rootModal: ModuleConfig = {
+      type: 'page',
+      routes: [{ path: '/test', componentName: 'TestComponent' }],
+      modals: [{ name: 'root-modal', componentName: 'RootModal' }],
+    };
+
+    await expect(
+      generateFiles(mockProjectConfig, rootModal, mockOptions, testOutputDir)
+    ).rejects.toThrow(/would both generate src\/root\.scss/);
+  });
+
   it('rejects the same component reused across entries', async () => {
     // Reuse is not safe: repeated routes emit duplicate imports in
     // root.component.tsx and repeated modals emit duplicate index.ts exports
