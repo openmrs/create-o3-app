@@ -234,13 +234,8 @@ export const moduleConfigSchema = z.object({
   featureFlags: z.array(featureFlagConfigSchema).optional(),
   backendDependencies: z.array(backendDependencySchema).optional(),
   offline: z.boolean().optional(),
-  errorBoundary: z.boolean().optional(),
   pathAliases: z.array(pathAliasSchema).optional(),
   coverageThresholds: z.boolean().optional(),
-  accessibility: z.boolean().optional(),
-  dependabot: z.boolean().optional(),
-  contributing: z.boolean().optional(),
-  turbo: z.boolean().optional(),
 });
 
 /**
