@@ -121,7 +121,11 @@ function buildContext(
 /**
  * Check if a file should be excluded from generation
  */
-function shouldExcludeFile(filePath: string, projectConfig: ProjectConfig): boolean {
+function shouldExcludeFile(
+  filePath: string,
+  projectConfig: ProjectConfig,
+  moduleConfig: ModuleConfig
+): boolean {
   const relativePath = filePath;
   const excludePatterns = [
     'node_modules',
@@ -141,6 +145,17 @@ function shouldExcludeFile(filePath: string, projectConfig: ProjectConfig): bool
     return true;
   }
   if (projectConfig.buildTool === 'webpack' && relativePath.includes('rspack.config.js')) {
+    return true;
+  }
+
+  // Exclude opt-in files unless the corresponding feature was requested
+  if (!moduleConfig.turbo && relativePath.includes('turbo.json')) {
+    return true;
+  }
+  if (!moduleConfig.dependabot && relativePath.includes('dependabot.yml')) {
+    return true;
+  }
+  if (!moduleConfig.contributing && relativePath.includes('CONTRIBUTING.md')) {
     return true;
   }
 
@@ -232,7 +247,9 @@ export async function generateFiles(
   });
 
   // Filter out excluded files
-  const filesToGenerate = templateFiles.filter((file) => !shouldExcludeFile(file, projectConfig));
+  const filesToGenerate = templateFiles.filter(
+    (file) => !shouldExcludeFile(file, projectConfig, moduleConfig)
+  );
 
   // Generate each file
   let fileCount = 0;

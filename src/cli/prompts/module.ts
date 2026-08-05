@@ -68,7 +68,6 @@ export async function promptModuleConfig(
         path: options.route,
         componentName: componentName,
         online: true,
-        offline: true,
       });
 
       // Show URL info for the provided route
@@ -91,7 +90,6 @@ export async function promptModuleConfig(
         path: defaultRoute,
         componentName: defaultComponent,
         online: true,
-        offline: true,
       });
 
       // Show URL info for the created route
@@ -160,7 +158,6 @@ export async function promptModuleConfig(
         slot: slot.name,
         componentName: component.name,
         online: true,
-        offline: true,
       });
       const more = await prompts({
         type: 'confirm',
@@ -263,7 +260,6 @@ export async function promptModuleConfig(
   if (isNonInteractive) {
     // Use sensible defaults when non-interactive
     config.offline = false;
-    config.errorBoundary = false;
     config.pathAliases = undefined;
     config.coverageThresholds = true;
     config.accessibility = true;
@@ -279,15 +275,6 @@ export async function promptModuleConfig(
         initial: false,
       })
     ).offline;
-
-    config.errorBoundary = (
-      await prompts({
-        type: 'confirm',
-        name: 'errorBoundary',
-        message: 'Generate error boundary component?',
-        initial: false,
-      })
-    ).errorBoundary;
 
     config.pathAliases = (
       await prompts({
@@ -345,6 +332,15 @@ export async function promptModuleConfig(
       })
     ).turbo;
   }
+
+  // Apply the offline support answer to the generated routes and extensions
+  const offline = config.offline ?? false;
+  config.routes?.forEach((route) => {
+    route.offline = offline;
+  });
+  config.extensions?.forEach((extension) => {
+    extension.offline = offline;
+  });
 
   return config;
 }

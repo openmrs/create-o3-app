@@ -35,7 +35,6 @@ export interface ModuleConfig {
   featureFlags?: FeatureFlagConfig[];
   backendDependencies?: BackendDependency[];
   offline?: boolean;
-  errorBoundary?: boolean;
   pathAliases?: string[];
   coverageThresholds?: boolean;
   accessibility?: boolean;
