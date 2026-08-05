@@ -8,12 +8,18 @@ import type {
   CreateOptions,
   RouteConfig,
   ExtensionConfig,
+  ModalConfig,
+  WorkspaceConfig,
 } from '../types/index.js';
 import { getTemplateInfo } from './loader.js';
+import { ValidationError } from '../utils/errors.js';
 
 export interface TemplateContext extends ProjectConfig {
   module: ModuleConfig;
   options: CreateOptions;
+  /** Modals and workspaces enriched with the derived output file basename */
+  modals?: Array<ModalConfig & { fileBaseName: string }>;
+  workspaces?: Array<WorkspaceConfig & { fileBaseName: string }>;
   // Helper fields
   kebabCase: (str: string) => string;
   camelCase: (str: string) => string;
@@ -86,6 +92,85 @@ function registerHelpers(): void {
 // Register helpers once
 registerHelpers();
 
+function toKebabCase(str: string): string {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/[\s_]+/g, '-')
+    .toLowerCase();
+}
+
+/**
+ * Derive the generated file basename for a modal or workspace component: the
+ * kebab-cased component name with any trailing kind suffix stripped, since the
+ * O3 file suffix (.modal.tsx / .workspace.tsx) already encodes the kind.
+ */
+function componentFileBaseName(componentName: string, kind: 'Modal' | 'Workspace'): string {
+  const stripped =
+    componentName.length > kind.length && componentName.endsWith(kind)
+      ? componentName.slice(0, -kind.length)
+      : componentName;
+  return toKebabCase(stripped);
+}
+
+/**
+ * Fail fast when two configured entries would generate the same output file.
+ * Component names are distinct inputs, but the derived basenames can collide:
+ * `DeleteThing` and `DeleteThingModal` both map to delete-thing.modal.tsx,
+ * and a modal and workspace with matching basenames both emit the same
+ * stylesheet. Reusing one component across entries is not safe either:
+ * repeated routes emit duplicate imports in root.component.tsx, repeated
+ * extensions, modals, and workspaces emit duplicate lifecycle exports in
+ * index.ts, and modal and workspace files interpolate entry-specific text.
+ */
+function assertNoOutputCollisions(moduleConfig: ModuleConfig): void {
+  const owners = new Map<string, string>();
+  const claim = (file: string, owner: string) => {
+    const existing = owners.get(file);
+    if (existing) {
+      const detail =
+        existing === owner
+          ? `${owner} is configured more than once`
+          : `${owner} and ${existing} would both generate src/${file}`;
+      throw new ValidationError(
+        `${detail}. Give each component a unique name so the generated files do not overwrite each other.`,
+        'componentName'
+      );
+    }
+    owners.set(file, owner);
+  };
+
+  // The static root component files are always generated, so a component
+  // named `Root` (or a modal/workspace stripping to the basename `root`)
+  // would silently overwrite them
+  claim('root.component.tsx', 'the app root component');
+  claim('root.scss', 'the app root component');
+
+  for (const route of moduleConfig.routes ?? []) {
+    const base = toKebabCase(route.componentName);
+    const owner = `Page component "${route.componentName}"`;
+    claim(`${base}.component.tsx`, owner);
+    claim(`${base}.scss`, owner);
+  }
+  for (const extension of moduleConfig.extensions ?? []) {
+    const base = toKebabCase(extension.componentName);
+    const owner = `Extension component "${extension.componentName}"`;
+    claim(`${base}.component.tsx`, owner);
+    claim(`${base}.scss`, owner);
+  }
+  for (const modal of moduleConfig.modals ?? []) {
+    const base = componentFileBaseName(modal.componentName, 'Modal');
+    const owner = `Modal component "${modal.componentName}"`;
+    claim(`${base}.modal.tsx`, owner);
+    claim(`${base}.scss`, owner);
+  }
+  for (const workspace of moduleConfig.workspaces ?? []) {
+    const base = componentFileBaseName(workspace.componentName, 'Workspace');
+    const owner = `Workspace component "${workspace.componentName}"`;
+    claim(`${base}.workspace.tsx`, owner);
+    claim(`${base}.scss`, owner);
+  }
+}
+
 /**
  * Build template context
  */
@@ -97,6 +182,14 @@ function buildContext(
   return {
     ...projectConfig,
     ...moduleConfig,
+    modals: moduleConfig.modals?.map((modal) => ({
+      ...modal,
+      fileBaseName: componentFileBaseName(modal.componentName, 'Modal'),
+    })),
+    workspaces: moduleConfig.workspaces?.map((workspace) => ({
+      ...workspace,
+      fileBaseName: componentFileBaseName(workspace.componentName, 'Workspace'),
+    })),
     module: moduleConfig,
     options,
     kebabCase: (str: string) =>
@@ -181,7 +274,12 @@ function renderFile(
 function renderComponentFile(
   templatePath: string,
   outputPath: string,
-  context: TemplateContext & { currentRoute?: RouteConfig; currentExtension?: ExtensionConfig },
+  context: TemplateContext & {
+    currentRoute?: RouteConfig;
+    currentExtension?: ExtensionConfig;
+    currentModal?: ModalConfig & { fileBaseName: string };
+    currentWorkspace?: WorkspaceConfig & { fileBaseName: string };
+  },
   isDryRun: boolean
 ): void {
   const content = readFileSync(templatePath, 'utf-8');
@@ -213,6 +311,9 @@ export async function generateFiles(
   options: CreateOptions,
   baseDir: string = process.cwd()
 ): Promise<number> {
+  // Fail fast if any two components would generate the same output file
+  assertNoOutputCollisions(moduleConfig);
+
   // Get template info (templates are now embedded, version ignored)
   const templateInfo = await getTemplateInfo();
 
@@ -312,6 +413,78 @@ export async function generateFiles(
             templatePath,
             outputPath,
             { ...context, currentExtension: extension },
+            options.dryRun || false
+          );
+          fileCount++;
+        }
+      }
+      continue;
+    }
+
+    if (templateFile === 'src/modal.component.tsx') {
+      // Generate individual component files for each modal (O3 convention: .modal.tsx)
+      if (moduleConfig.modals) {
+        for (const modal of moduleConfig.modals) {
+          const fileBaseName = componentFileBaseName(modal.componentName, 'Modal');
+          const outputPath = join(outputDir, 'src', `${fileBaseName}.modal.tsx`);
+          renderComponentFile(
+            templatePath,
+            outputPath,
+            { ...context, currentModal: { ...modal, fileBaseName } },
+            options.dryRun || false
+          );
+          fileCount++;
+        }
+      }
+      continue;
+    }
+
+    if (templateFile === 'src/modal.scss') {
+      // Generate individual SCSS files for each modal
+      if (moduleConfig.modals) {
+        for (const modal of moduleConfig.modals) {
+          const fileBaseName = componentFileBaseName(modal.componentName, 'Modal');
+          const outputPath = join(outputDir, 'src', `${fileBaseName}.scss`);
+          renderComponentFile(
+            templatePath,
+            outputPath,
+            { ...context, currentModal: { ...modal, fileBaseName } },
+            options.dryRun || false
+          );
+          fileCount++;
+        }
+      }
+      continue;
+    }
+
+    if (templateFile === 'src/workspace.component.tsx') {
+      // Generate individual component files for each workspace (O3 convention: .workspace.tsx)
+      if (moduleConfig.workspaces) {
+        for (const workspace of moduleConfig.workspaces) {
+          const fileBaseName = componentFileBaseName(workspace.componentName, 'Workspace');
+          const outputPath = join(outputDir, 'src', `${fileBaseName}.workspace.tsx`);
+          renderComponentFile(
+            templatePath,
+            outputPath,
+            { ...context, currentWorkspace: { ...workspace, fileBaseName } },
+            options.dryRun || false
+          );
+          fileCount++;
+        }
+      }
+      continue;
+    }
+
+    if (templateFile === 'src/workspace.scss') {
+      // Generate individual SCSS files for each workspace
+      if (moduleConfig.workspaces) {
+        for (const workspace of moduleConfig.workspaces) {
+          const fileBaseName = componentFileBaseName(workspace.componentName, 'Workspace');
+          const outputPath = join(outputDir, 'src', `${fileBaseName}.scss`);
+          renderComponentFile(
+            templatePath,
+            outputPath,
+            { ...context, currentWorkspace: { ...workspace, fileBaseName } },
             options.dryRun || false
           );
           fileCount++;

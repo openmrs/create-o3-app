@@ -17,7 +17,7 @@
     "coverage": "vitest run --coverage --passWithNoTests",
     "typescript": "tsc",
     "lint": "eslint src",
-    "extract-translations": "i18next 'src/**/*.component.tsx' 'src/**/*.extension.tsx' 'src/**/*.modal.tsx' 'src/index.ts' --config ./tools/i18next-parser.config.js",
+    "extract-translations": "i18next 'src/**/*.component.tsx' 'src/**/*.extension.tsx' 'src/**/*.modal.tsx' 'src/**/*.workspace.tsx' 'src/index.ts' --config ./tools/i18next-parser.config.js",
     "prettier": "prettier --config prettier.config.js --write \"src/**/*.{ts,tsx,css,scss}\"",
     "postinstall": "husky install"
   },

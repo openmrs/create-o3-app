@@ -65,7 +65,7 @@ export interface WorkspaceConfig {
   name: string;
   title: string;
   componentName: string;
-  type: 'form' | 'chart' | 'other';
+  type: string;
 }
 
 export interface FeatureFlagConfig {

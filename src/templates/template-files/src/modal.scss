@@ -1,0 +1,6 @@
+@use '@carbon/type';
+
+.body {
+  @include type.type-style('body-01');
+  color: var(--cds-text-primary);
+}

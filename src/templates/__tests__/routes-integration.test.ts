@@ -278,4 +278,79 @@ describe('routes.json Integration', () => {
       }
     }
   });
+
+  it('renders modals, workspaces, and featureFlags sections in routes.json', async () => {
+    const mockModuleConfig: ModuleConfig = {
+      type: 'page',
+      routes: [{ path: '/test', componentName: 'TestComponent' }],
+      modals: [{ name: 'delete-thing-modal', componentName: 'DeleteThingModal' }],
+      workspaces: [
+        {
+          name: 'thing-form-workspace',
+          title: 'Thing form: R&D "review"',
+          componentName: 'ThingFormWorkspace',
+          type: 'custom "quoted" \\ type',
+        },
+      ],
+      featureFlags: [
+        {
+          name: 'experimental-thing',
+          label: 'Experimental thing: R&D "flag"',
+          description: 'Enables the experimental A&B "mode".',
+        },
+      ],
+    };
+
+    const testTemplatePath = join(process.cwd(), 'test-sections-routes-templates');
+    mkdirSync(join(testTemplatePath, 'src'), { recursive: true });
+
+    // Copy the real routes.json template
+    const realTemplatePath = join(
+      process.cwd(),
+      'src',
+      'templates',
+      'template-files',
+      'src',
+      'routes.json'
+    );
+    writeFileSync(
+      join(testTemplatePath, 'src', 'routes.json'),
+      readFileSync(realTemplatePath, 'utf-8')
+    );
+
+    const { getTemplateInfo } = await import('../loader.js');
+    vi.mocked(getTemplateInfo).mockResolvedValue({
+      version: 'latest',
+      path: testTemplatePath,
+    });
+
+    try {
+      await generateFiles(mockProjectConfig, mockModuleConfig, mockOptions, testOutputDir);
+
+      const outputPath = join(testOutputDir, 'test-routes-module', 'src', 'routes.json');
+      const parsed = JSON.parse(readFileSync(outputPath, 'utf-8'));
+
+      expect(parsed.modals).toEqual([{ name: 'delete-thing-modal', component: 'deleteThingModal' }]);
+      expect(parsed.workspaces).toEqual([
+        {
+          name: 'thing-form-workspace',
+          title: 'Thing form: R&D "review"',
+          component: 'thingFormWorkspace',
+          type: 'custom "quoted" \\ type',
+        },
+      ]);
+      // The routes schema requires flagName, not name
+      expect(parsed.featureFlags).toEqual([
+        {
+          flagName: 'experimental-thing',
+          label: 'Experimental thing: R&D "flag"',
+          description: 'Enables the experimental A&B "mode".',
+        },
+      ]);
+    } finally {
+      if (existsSync(testTemplatePath)) {
+        rmSync(testTemplatePath, { recursive: true });
+      }
+    }
+  });
 });
