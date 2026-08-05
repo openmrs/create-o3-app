@@ -113,21 +113,26 @@ function componentFileBaseName(componentName: string, kind: 'Modal' | 'Workspace
 }
 
 /**
- * Fail fast when two configured components would generate the same output
- * file. Component names are distinct inputs, but the derived basenames can
- * collide: `DeleteThing` and `DeleteThingModal` both map to
- * delete-thing.modal.tsx, and a modal and workspace with matching basenames
- * both emit the same stylesheet. The same component reused across entries of
- * one kind renders identical content, so only claims from different
- * components are collisions.
+ * Fail fast when two configured entries would generate the same output file.
+ * Component names are distinct inputs, but the derived basenames can collide:
+ * `DeleteThing` and `DeleteThingModal` both map to delete-thing.modal.tsx,
+ * and a modal and workspace with matching basenames both emit the same
+ * stylesheet. Reusing one component across entries is not safe either:
+ * repeated routes emit duplicate imports in root.component.tsx, repeated
+ * extensions, modals, and workspaces emit duplicate lifecycle exports in
+ * index.ts, and modal and workspace files interpolate entry-specific text.
  */
 function assertNoOutputCollisions(moduleConfig: ModuleConfig): void {
   const owners = new Map<string, string>();
   const claim = (file: string, owner: string) => {
     const existing = owners.get(file);
-    if (existing && existing !== owner) {
+    if (existing) {
+      const detail =
+        existing === owner
+          ? `${owner} is configured more than once`
+          : `${owner} and ${existing} would both generate src/${file}`;
       throw new ValidationError(
-        `${owner} and ${existing} would both generate src/${file}. Rename one of the components so the generated files do not overwrite each other.`,
+        `${detail}. Give each component a unique name so the generated files do not overwrite each other.`,
         'componentName'
       );
     }

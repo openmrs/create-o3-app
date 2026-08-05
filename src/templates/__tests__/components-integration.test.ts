@@ -183,7 +183,9 @@ describe('Modal and workspace component generation', () => {
     ).rejects.toThrow(/would both generate src\/delete-thing\.scss/);
   });
 
-  it('allows the same component to back multiple entries of one kind', async () => {
+  it('rejects the same component reused across entries', async () => {
+    // Reuse is not safe: repeated routes emit duplicate imports in
+    // root.component.tsx and repeated modals emit duplicate index.ts exports
     const reused: ModuleConfig = {
       type: 'page',
       routes: [
@@ -194,7 +196,7 @@ describe('Modal and workspace component generation', () => {
 
     await expect(
       generateFiles(mockProjectConfig, reused, mockOptions, testOutputDir)
-    ).resolves.toBeGreaterThan(0);
+    ).rejects.toThrow(/Page component "TestComponent" is configured more than once/);
   });
 
   it('generates nothing extra when no modals or workspaces are configured', async () => {
