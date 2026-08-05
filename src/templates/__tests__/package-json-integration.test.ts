@@ -66,6 +66,13 @@ describe('package.json template integration', () => {
     expect(Object.values(packageJson.devDependencies)).not.toContain('workspace:*');
   });
 
+  it('declares the Carbon singleton packages in peerDependencies', async () => {
+    const packageJson = await renderPackageJson(baseProjectConfig);
+
+    expect(packageJson.peerDependencies['@carbon/react']).toBe('1.x');
+    expect(packageJson.peerDependencies['@carbon/icons-react']).toBe('11.x');
+  });
+
   it('does not emit unresolved workspace dependencies for new monorepos', async () => {
     const packageJson = await renderPackageJson({
       ...baseProjectConfig,
