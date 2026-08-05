@@ -16,6 +16,9 @@ import { getTemplateInfo } from './loader.js';
 export interface TemplateContext extends ProjectConfig {
   module: ModuleConfig;
   options: CreateOptions;
+  /** Modals and workspaces enriched with the derived output file basename */
+  modals?: Array<ModalConfig & { fileBaseName: string }>;
+  workspaces?: Array<WorkspaceConfig & { fileBaseName: string }>;
   // Helper fields
   kebabCase: (str: string) => string;
   camelCase: (str: string) => string;
@@ -89,6 +92,22 @@ function registerHelpers(): void {
 registerHelpers();
 
 /**
+ * Derive the generated file basename for a modal or workspace component: the
+ * kebab-cased component name with any trailing kind suffix stripped, since the
+ * O3 file suffix (.modal.tsx / .workspace.tsx) already encodes the kind.
+ */
+function componentFileBaseName(componentName: string, kind: 'Modal' | 'Workspace'): string {
+  const stripped =
+    componentName.length > kind.length && componentName.endsWith(kind)
+      ? componentName.slice(0, -kind.length)
+      : componentName;
+  return stripped
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/[\s_]+/g, '-')
+    .toLowerCase();
+}
+
+/**
  * Build template context
  */
 function buildContext(
@@ -99,6 +118,14 @@ function buildContext(
   return {
     ...projectConfig,
     ...moduleConfig,
+    modals: moduleConfig.modals?.map((modal) => ({
+      ...modal,
+      fileBaseName: componentFileBaseName(modal.componentName, 'Modal'),
+    })),
+    workspaces: moduleConfig.workspaces?.map((workspace) => ({
+      ...workspace,
+      fileBaseName: componentFileBaseName(workspace.componentName, 'Workspace'),
+    })),
     module: moduleConfig,
     options,
     kebabCase: (str: string) =>
@@ -186,8 +213,8 @@ function renderComponentFile(
   context: TemplateContext & {
     currentRoute?: RouteConfig;
     currentExtension?: ExtensionConfig;
-    currentModal?: ModalConfig;
-    currentWorkspace?: WorkspaceConfig;
+    currentModal?: ModalConfig & { fileBaseName: string };
+    currentWorkspace?: WorkspaceConfig & { fileBaseName: string };
   },
   isDryRun: boolean
 ): void {
@@ -331,12 +358,12 @@ export async function generateFiles(
       // Generate individual component files for each modal (O3 convention: .modal.tsx)
       if (moduleConfig.modals) {
         for (const modal of moduleConfig.modals) {
-          const componentName = context.kebabCase(modal.componentName);
-          const outputPath = join(outputDir, 'src', `${componentName}.modal.tsx`);
+          const fileBaseName = componentFileBaseName(modal.componentName, 'Modal');
+          const outputPath = join(outputDir, 'src', `${fileBaseName}.modal.tsx`);
           renderComponentFile(
             templatePath,
             outputPath,
-            { ...context, currentModal: modal },
+            { ...context, currentModal: { ...modal, fileBaseName } },
             options.dryRun || false
           );
           fileCount++;
@@ -349,12 +376,12 @@ export async function generateFiles(
       // Generate individual SCSS files for each modal
       if (moduleConfig.modals) {
         for (const modal of moduleConfig.modals) {
-          const componentName = context.kebabCase(modal.componentName);
-          const outputPath = join(outputDir, 'src', `${componentName}.scss`);
+          const fileBaseName = componentFileBaseName(modal.componentName, 'Modal');
+          const outputPath = join(outputDir, 'src', `${fileBaseName}.scss`);
           renderComponentFile(
             templatePath,
             outputPath,
-            { ...context, currentModal: modal },
+            { ...context, currentModal: { ...modal, fileBaseName } },
             options.dryRun || false
           );
           fileCount++;
@@ -367,12 +394,12 @@ export async function generateFiles(
       // Generate individual component files for each workspace (O3 convention: .workspace.tsx)
       if (moduleConfig.workspaces) {
         for (const workspace of moduleConfig.workspaces) {
-          const componentName = context.kebabCase(workspace.componentName);
-          const outputPath = join(outputDir, 'src', `${componentName}.workspace.tsx`);
+          const fileBaseName = componentFileBaseName(workspace.componentName, 'Workspace');
+          const outputPath = join(outputDir, 'src', `${fileBaseName}.workspace.tsx`);
           renderComponentFile(
             templatePath,
             outputPath,
-            { ...context, currentWorkspace: workspace },
+            { ...context, currentWorkspace: { ...workspace, fileBaseName } },
             options.dryRun || false
           );
           fileCount++;
@@ -385,12 +412,12 @@ export async function generateFiles(
       // Generate individual SCSS files for each workspace
       if (moduleConfig.workspaces) {
         for (const workspace of moduleConfig.workspaces) {
-          const componentName = context.kebabCase(workspace.componentName);
-          const outputPath = join(outputDir, 'src', `${componentName}.scss`);
+          const fileBaseName = componentFileBaseName(workspace.componentName, 'Workspace');
+          const outputPath = join(outputDir, 'src', `${fileBaseName}.scss`);
           renderComponentFile(
             templatePath,
             outputPath,
-            { ...context, currentWorkspace: workspace },
+            { ...context, currentWorkspace: { ...workspace, fileBaseName } },
             options.dryRun || false
           );
           fileCount++;

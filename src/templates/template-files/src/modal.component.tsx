@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, ModalBody, ModalFooter, ModalHeader } from '@carbon/react';
-import styles from './{{kebabCase currentModal.componentName}}.scss';
+import styles from './{{currentModal.fileBaseName}}.scss';
 
 interface {{pascalCase currentModal.componentName}}Props {
   close: () => void;

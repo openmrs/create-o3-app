@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonSet } from '@carbon/react';
 import { type DefaultWorkspaceProps } from '@openmrs/esm-framework';
-import styles from './{{kebabCase currentWorkspace.componentName}}.scss';
+import styles from './{{currentWorkspace.fileBaseName}}.scss';
 
 const {{pascalCase currentWorkspace.componentName}}: React.FC<DefaultWorkspaceProps> = ({ closeWorkspace }) => {
   const { t } = useTranslation();

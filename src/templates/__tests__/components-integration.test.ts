@@ -73,7 +73,10 @@ describe('Modal and workspace component generation', () => {
     extensions: [
       { name: 'test-extension', slot: 'test-slot', componentName: 'TestExtension' },
     ],
-    modals: [{ name: 'delete-thing-modal', componentName: 'DeleteThingModal' }],
+    modals: [
+      { name: 'delete-thing-modal', componentName: 'DeleteThingModal' },
+      { name: 'confirm-thing-modal', componentName: 'ConfirmThing' },
+    ],
     workspaces: [
       {
         name: 'thing-form-workspace',
@@ -89,23 +92,28 @@ describe('Modal and workspace component generation', () => {
   it('generates a component and stylesheet per modal', async () => {
     await generateFiles(mockProjectConfig, moduleConfig, mockOptions, testOutputDir);
 
-    const componentPath = join(outputSrc, 'delete-thing-modal.modal.tsx');
+    // The basename strips the trailing kind; the .modal.tsx suffix already encodes it
+    const componentPath = join(outputSrc, 'delete-thing.modal.tsx');
     expect(existsSync(componentPath)).toBe(true);
-    expect(existsSync(join(outputSrc, 'delete-thing-modal.scss'))).toBe(true);
+    expect(existsSync(join(outputSrc, 'delete-thing.scss'))).toBe(true);
 
     const content = readFileSync(componentPath, 'utf-8');
     expect(content).toContain('const DeleteThingModal');
     expect(content).toContain('= ({ close }) =>');
     expect(content).toContain('closeModal={close}');
-    expect(content).toContain("import styles from './delete-thing-modal.scss'");
+    expect(content).toContain("import styles from './delete-thing.scss'");
+
+    // A component name without the kind suffix passes through unchanged
+    expect(existsSync(join(outputSrc, 'confirm-thing.modal.tsx'))).toBe(true);
+    expect(existsSync(join(outputSrc, 'confirm-thing.scss'))).toBe(true);
   });
 
   it('generates a component and stylesheet per workspace', async () => {
     await generateFiles(mockProjectConfig, moduleConfig, mockOptions, testOutputDir);
 
-    const componentPath = join(outputSrc, 'thing-form-workspace.workspace.tsx');
+    const componentPath = join(outputSrc, 'thing-form.workspace.tsx');
     expect(existsSync(componentPath)).toBe(true);
-    expect(existsSync(join(outputSrc, 'thing-form-workspace.scss'))).toBe(true);
+    expect(existsSync(join(outputSrc, 'thing-form.scss'))).toBe(true);
 
     const content = readFileSync(componentPath, 'utf-8');
     expect(content).toContain('const ThingFormWorkspace');
@@ -122,10 +130,10 @@ describe('Modal and workspace component generation', () => {
       "export const testExtension = getAsyncLifecycle(\n  () => import('./test-extension.component'),"
     );
     expect(content).toContain(
-      "export const deleteThingModal = getAsyncLifecycle(\n  () => import('./delete-thing-modal.modal'),"
+      "export const deleteThingModal = getAsyncLifecycle(\n  () => import('./delete-thing.modal'),"
     );
     expect(content).toContain(
-      "export const thingFormWorkspace = getAsyncLifecycle(\n  () => import('./thing-form-workspace.workspace'),"
+      "export const thingFormWorkspace = getAsyncLifecycle(\n  () => import('./thing-form.workspace'),"
     );
     // getSyncLifecycle takes a component, not an import thunk; it must not be used here
     expect(content).not.toContain('getSyncLifecycle');
@@ -148,8 +156,8 @@ describe('Modal and workspace component generation', () => {
       testOutputDir
     );
 
-    expect(existsSync(join(outputSrc, 'delete-thing-modal.modal.tsx'))).toBe(false);
-    expect(existsSync(join(outputSrc, 'thing-form-workspace.workspace.tsx'))).toBe(false);
+    expect(existsSync(join(outputSrc, 'delete-thing.modal.tsx'))).toBe(false);
+    expect(existsSync(join(outputSrc, 'thing-form.workspace.tsx'))).toBe(false);
     expect(existsSync(join(outputSrc, 'modal.component.tsx'))).toBe(false);
     expect(existsSync(join(outputSrc, 'workspace.component.tsx'))).toBe(false);
   });
