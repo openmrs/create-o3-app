@@ -267,21 +267,17 @@ export async function promptModuleConfig(
           },
         });
         const workspaceType = await prompts({
-          type: 'select',
+          type: 'text',
           name: 'type',
           message: 'Workspace type:',
-          choices: [
-            { title: 'Form', value: 'form' },
-            { title: 'Chart', value: 'chart' },
-            { title: 'Other', value: 'other' },
-          ],
-          initial: 0,
+          initial: 'form',
+          validate: (value: string) => (value.trim() ? true : 'Workspace type is required'),
         });
         config.workspaces.push({
           name: workspace.name,
           title: title.title,
           componentName: component.name,
-          type: workspaceType.type,
+          type: workspaceType.type.trim(),
         });
         const more = await prompts({
           type: 'confirm',

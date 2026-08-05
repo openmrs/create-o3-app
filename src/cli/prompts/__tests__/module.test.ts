@@ -77,7 +77,7 @@ describe('promptModuleConfig (interactive standalone)', () => {
       .mockResolvedValueOnce({ name: 'thing-form-workspace' })
       .mockResolvedValueOnce({ title: 'Thing form' })
       .mockResolvedValueOnce({ name: 'ThingFormWorkspace' })
-      .mockResolvedValueOnce({ type: 'form' })
+      .mockResolvedValueOnce({ type: ' patient-search-workspace ' })
       .mockResolvedValueOnce({ addMore: false })
       .mockResolvedValueOnce({ create: true })
       .mockResolvedValueOnce({ name: 'experimental-thing' })
@@ -103,9 +103,17 @@ describe('promptModuleConfig (interactive standalone)', () => {
           name: 'thing-form-workspace',
           title: 'Thing form',
           componentName: 'ThingFormWorkspace',
-          type: 'form',
+          type: 'patient-search-workspace',
         },
       ]);
+      expect(mockedPrompts).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'text',
+          name: 'type',
+          message: 'Workspace type:',
+          initial: 'form',
+        })
+      );
       expect(config.featureFlags).toEqual([
         {
           name: 'experimental-thing',

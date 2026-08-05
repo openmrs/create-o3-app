@@ -10,6 +10,7 @@ import {
   extensionNameSchema,
   slotNameSchema,
   backendDependencyInputSchema,
+  workspaceConfigSchema,
 } from '../schemas.js';
 
 describe('Validation Schemas', () => {
@@ -144,6 +145,26 @@ describe('Validation Schemas', () => {
       expect(() => backendDependencyInputSchema.parse('webservices.rest')).toThrow();
       expect(() => backendDependencyInputSchema.parse('module>=')).toThrow();
       expect(() => backendDependencyInputSchema.parse('')).toThrow();
+    });
+  });
+
+  describe('workspaceConfigSchema', () => {
+    const workspace = {
+      name: 'patient-search-workspace',
+      title: 'Search patient',
+      componentName: 'PatientSearchWorkspace',
+    };
+
+    it('should accept custom workspace types', () => {
+      expect(() => workspaceConfigSchema.parse({ ...workspace, type: 'order' })).not.toThrow();
+      expect(() =>
+        workspaceConfigSchema.parse({ ...workspace, type: 'patient-search-workspace' })
+      ).not.toThrow();
+    });
+
+    it('should reject empty workspace types', () => {
+      expect(() => workspaceConfigSchema.parse({ ...workspace, type: '' })).toThrow();
+      expect(() => workspaceConfigSchema.parse({ ...workspace, type: '   ' })).toThrow();
     });
   });
 });
