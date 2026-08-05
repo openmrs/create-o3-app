@@ -13,6 +13,7 @@ import type {
 } from '../types/index.js';
 import { getTemplateInfo } from './loader.js';
 import { ValidationError } from '../utils/errors.js';
+import { componentFileBaseName, OutputFileClaims, type ComponentKind } from './naming.js';
 
 export interface TemplateContext extends ProjectConfig {
   module: ModuleConfig;
@@ -92,82 +93,30 @@ function registerHelpers(): void {
 // Register helpers once
 registerHelpers();
 
-function toKebabCase(str: string): string {
-  return str
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/[\s_]+/g, '-')
-    .toLowerCase();
-}
-
-/**
- * Derive the generated file basename for a modal or workspace component: the
- * kebab-cased component name with any trailing kind suffix stripped, since the
- * O3 file suffix (.modal.tsx / .workspace.tsx) already encodes the kind.
- */
-function componentFileBaseName(componentName: string, kind: 'Modal' | 'Workspace'): string {
-  const stripped =
-    componentName.length > kind.length && componentName.endsWith(kind)
-      ? componentName.slice(0, -kind.length)
-      : componentName;
-  return toKebabCase(stripped);
-}
-
 /**
  * Fail fast when two configured entries would generate the same output file.
- * Component names are distinct inputs, but the derived basenames can collide:
- * `DeleteThing` and `DeleteThingModal` both map to delete-thing.modal.tsx,
- * and a modal and workspace with matching basenames both emit the same
- * stylesheet. Reusing one component across entries is not safe either:
- * repeated routes emit duplicate imports in root.component.tsx, repeated
- * extensions, modals, and workspaces emit duplicate lifecycle exports in
- * index.ts, and modal and workspace files interpolate entry-specific text.
+ * See OutputFileClaims for the collision classes this guards against.
  */
 function assertNoOutputCollisions(moduleConfig: ModuleConfig): void {
-  const owners = new Map<string, string>();
-  const claim = (file: string, owner: string) => {
-    const existing = owners.get(file);
-    if (existing) {
-      const detail =
-        existing === owner
-          ? `${owner} is configured more than once`
-          : `${owner} and ${existing} would both generate src/${file}`;
-      throw new ValidationError(
-        `${detail}. Give each component a unique name so the generated files do not overwrite each other.`,
-        'componentName'
-      );
+  const claims = new OutputFileClaims();
+  const claimOrThrow = (kind: ComponentKind, name: string) => {
+    const error = claims.claim(kind, name);
+    if (error) {
+      throw new ValidationError(error, 'componentName');
     }
-    owners.set(file, owner);
   };
 
-  // The static root component files are always generated, so a component
-  // named `Root` (or a modal/workspace stripping to the basename `root`)
-  // would silently overwrite them
-  claim('root.component.tsx', 'the app root component');
-  claim('root.scss', 'the app root component');
-
   for (const route of moduleConfig.routes ?? []) {
-    const base = toKebabCase(route.componentName);
-    const owner = `Page component "${route.componentName}"`;
-    claim(`${base}.component.tsx`, owner);
-    claim(`${base}.scss`, owner);
+    claimOrThrow('page', route.componentName);
   }
   for (const extension of moduleConfig.extensions ?? []) {
-    const base = toKebabCase(extension.componentName);
-    const owner = `Extension component "${extension.componentName}"`;
-    claim(`${base}.component.tsx`, owner);
-    claim(`${base}.scss`, owner);
+    claimOrThrow('extension', extension.componentName);
   }
   for (const modal of moduleConfig.modals ?? []) {
-    const base = componentFileBaseName(modal.componentName, 'Modal');
-    const owner = `Modal component "${modal.componentName}"`;
-    claim(`${base}.modal.tsx`, owner);
-    claim(`${base}.scss`, owner);
+    claimOrThrow('modal', modal.componentName);
   }
   for (const workspace of moduleConfig.workspaces ?? []) {
-    const base = componentFileBaseName(workspace.componentName, 'Workspace');
-    const owner = `Workspace component "${workspace.componentName}"`;
-    claim(`${base}.workspace.tsx`, owner);
-    claim(`${base}.scss`, owner);
+    claimOrThrow('workspace', workspace.componentName);
   }
 }
 

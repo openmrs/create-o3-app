@@ -126,4 +126,77 @@ describe('promptModuleConfig (interactive standalone)', () => {
       vi.unstubAllEnvs();
     }
   });
+
+  it('drops the partial entry when a collection prompt is cancelled', async () => {
+    const mockedPrompts = vi.mocked(prompts);
+    mockedPrompts
+      .mockResolvedValueOnce({ moduleType: 'page' })
+      .mockResolvedValueOnce({ create: true })
+      // Cancelling the modal name prompt resolves with no answer
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ create: false })
+      .mockResolvedValueOnce({ create: false })
+      .mockResolvedValueOnce({ dependencies: '' })
+      .mockResolvedValueOnce({ offline: false })
+      .mockResolvedValueOnce({ pathAliases: false })
+      .mockResolvedValueOnce({ coverage: true });
+
+    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
+    vi.stubEnv('CI', 'false');
+
+    try {
+      const config = await promptModuleConfig(projectConfig, {});
+
+      // No entry with undefined fields is pushed
+      expect(config.modals).toEqual([]);
+    } finally {
+      Reflect.deleteProperty(process.stdin, 'isTTY');
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('rejects component names whose generated files would collide', async () => {
+    const mockedPrompts = vi.mocked(prompts);
+    mockedPrompts
+      .mockResolvedValueOnce({ moduleType: 'page' })
+      .mockResolvedValueOnce({ create: true })
+      .mockResolvedValueOnce({ name: 'delete-thing-modal' })
+      .mockResolvedValueOnce({ name: 'DeleteThingModal' })
+      .mockResolvedValueOnce({ addMore: false })
+      .mockResolvedValueOnce({ create: false })
+      .mockResolvedValueOnce({ create: false })
+      .mockResolvedValueOnce({ dependencies: '' })
+      .mockResolvedValueOnce({ offline: false })
+      .mockResolvedValueOnce({ pathAliases: false })
+      .mockResolvedValueOnce({ coverage: true });
+
+    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
+    vi.stubEnv('CI', 'false');
+
+    try {
+      await promptModuleConfig(projectConfig, {});
+
+      // Grab the validate callback the modal component-name prompt received
+      const componentQuestion = mockedPrompts.mock.calls
+        .map(([question]) => question)
+        .find(
+          (question) =>
+            !Array.isArray(question) && question.message === 'Component name:'
+        ) as { validate: (value: string) => true | string };
+
+      // A repeat of the collected modal component
+      expect(componentQuestion.validate('DeleteThingModal')).toMatch(
+        /is configured more than once/
+      );
+      // A collision with the default route component (TestModule -> test-module.scss)
+      expect(componentQuestion.validate('TestModuleModal')).toMatch(
+        /Page component "TestModule".*src\/test-module\.scss/
+      );
+      // A fresh name passes
+      expect(componentQuestion.validate('ConfirmThingModal')).toBe(true);
+    } finally {
+      Reflect.deleteProperty(process.stdin, 'isTTY');
+      vi.unstubAllEnvs();
+    }
+  });
 });
