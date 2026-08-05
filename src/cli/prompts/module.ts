@@ -14,11 +14,8 @@ export async function promptModuleConfig(
   projectConfig: ProjectConfig,
   options: CreateOptions
 ): Promise<ModuleConfig> {
-  // Check if we're in non-interactive mode (CI, no TTY, flags provided, or defaulted to standalone)
+  // Check if we're in non-interactive mode (CI, no TTY, or flags provided)
   const componentName = options.routeComponent;
-  // If project was defaulted to standalone (no flags provided), treat as non-interactive
-  const wasDefaultedToStandalone =
-    !options.standalone && !options.monorepo && !options.newMonorepo && !projectConfig.isMonorepo;
   const isNonInteractive =
     options.quiet ||
     process.env.CI === 'true' ||
@@ -26,7 +23,6 @@ export async function promptModuleConfig(
     options.standalone ||
     options.monorepo ||
     options.newMonorepo ||
-    wasDefaultedToStandalone ||
     (options.route && componentName);
 
   // Determine module type from options

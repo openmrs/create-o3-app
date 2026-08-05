@@ -95,7 +95,8 @@ describe('Modal and workspace component generation', () => {
 
     const content = readFileSync(componentPath, 'utf-8');
     expect(content).toContain('const DeleteThingModal');
-    expect(content).toContain('closeModal');
+    expect(content).toContain('= ({ close }) =>');
+    expect(content).toContain('closeModal={close}');
     expect(content).toContain("import styles from './delete-thing-modal.scss'");
   });
 

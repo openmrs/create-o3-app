@@ -287,7 +287,7 @@ describe('routes.json Integration', () => {
       workspaces: [
         {
           name: 'thing-form-workspace',
-          title: 'Thing form',
+          title: 'Thing form: R&D "review"',
           componentName: 'ThingFormWorkspace',
           type: 'form',
         },
@@ -295,8 +295,8 @@ describe('routes.json Integration', () => {
       featureFlags: [
         {
           name: 'experimental-thing',
-          label: 'Experimental thing',
-          description: 'Enables the experimental thing.',
+          label: 'Experimental thing: R&D "flag"',
+          description: 'Enables the experimental A&B "mode".',
         },
       ],
     };
@@ -334,7 +334,7 @@ describe('routes.json Integration', () => {
       expect(parsed.workspaces).toEqual([
         {
           name: 'thing-form-workspace',
-          title: 'Thing form',
+          title: 'Thing form: R&D "review"',
           component: 'thingFormWorkspace',
           type: 'form',
         },
@@ -343,8 +343,8 @@ describe('routes.json Integration', () => {
       expect(parsed.featureFlags).toEqual([
         {
           flagName: 'experimental-thing',
-          label: 'Experimental thing',
-          description: 'Enables the experimental thing.',
+          label: 'Experimental thing: R&D "flag"',
+          description: 'Enables the experimental A&B "mode".',
         },
       ]);
     } finally {

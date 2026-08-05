@@ -4,16 +4,16 @@ import { Button, ModalBody, ModalFooter, ModalHeader } from '@carbon/react';
 import styles from './{{kebabCase currentModal.componentName}}.scss';
 
 interface {{pascalCase currentModal.componentName}}Props {
-  closeModal: () => void;
+  close: () => void;
 }
 
-const {{pascalCase currentModal.componentName}}: React.FC<{{pascalCase currentModal.componentName}}Props> = ({ closeModal }) => {
+const {{pascalCase currentModal.componentName}}: React.FC<{{pascalCase currentModal.componentName}}Props> = ({ close }) => {
   const { t } = useTranslation();
 
   return (
     <>
       <ModalHeader
-        closeModal={closeModal}
+        closeModal={close}
         title={t('{{kebabCase currentModal.componentName}}Title', '{{pascalCase currentModal.componentName}}')}
       />
       <ModalBody>
@@ -22,10 +22,10 @@ const {{pascalCase currentModal.componentName}}: React.FC<{{pascalCase currentMo
         </p>
       </ModalBody>
       <ModalFooter>
-        <Button kind="secondary" onClick={closeModal}>
+        <Button kind="secondary" onClick={close}>
           {t('cancel', 'Cancel')}
         </Button>
-        <Button kind="primary" onClick={closeModal}>
+        <Button kind="primary" onClick={close}>
           {t('confirm', 'Confirm')}
         </Button>
       </ModalFooter>

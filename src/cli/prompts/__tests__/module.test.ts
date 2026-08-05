@@ -1,6 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import prompts from 'prompts';
 import { promptModuleConfig } from '../module.js';
 import type { ProjectConfig, CreateOptions } from '../../../types/index.js';
+
+vi.mock('prompts', () => ({
+  default: vi.fn(),
+}));
 
 const projectConfig: ProjectConfig = {
   projectName: 'test-module',
@@ -56,5 +61,61 @@ describe('promptModuleConfig (non-interactive)', () => {
     expect(config.modals).toBeUndefined();
     expect(config.workspaces).toBeUndefined();
     expect(config.featureFlags).toBeUndefined();
+  });
+});
+
+describe('promptModuleConfig (interactive standalone)', () => {
+  it('collects modals, workspaces, and feature flags when no non-interactive flags are set', async () => {
+    const mockedPrompts = vi.mocked(prompts);
+    mockedPrompts
+      .mockResolvedValueOnce({ moduleType: 'page' })
+      .mockResolvedValueOnce({ create: true })
+      .mockResolvedValueOnce({ name: 'delete-thing-modal' })
+      .mockResolvedValueOnce({ name: 'DeleteThingModal' })
+      .mockResolvedValueOnce({ addMore: false })
+      .mockResolvedValueOnce({ create: true })
+      .mockResolvedValueOnce({ name: 'thing-form-workspace' })
+      .mockResolvedValueOnce({ title: 'Thing form' })
+      .mockResolvedValueOnce({ name: 'ThingFormWorkspace' })
+      .mockResolvedValueOnce({ type: 'form' })
+      .mockResolvedValueOnce({ addMore: false })
+      .mockResolvedValueOnce({ create: true })
+      .mockResolvedValueOnce({ name: 'experimental-thing' })
+      .mockResolvedValueOnce({ label: 'Experimental thing' })
+      .mockResolvedValueOnce({ description: 'Enables the experimental thing.' })
+      .mockResolvedValueOnce({ addMore: false })
+      .mockResolvedValueOnce({ dependencies: '' })
+      .mockResolvedValueOnce({ offline: false })
+      .mockResolvedValueOnce({ pathAliases: false })
+      .mockResolvedValueOnce({ coverage: true });
+
+    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
+    vi.stubEnv('CI', 'false');
+
+    try {
+      const config = await promptModuleConfig(projectConfig, {});
+
+      expect(config.modals).toEqual([
+        { name: 'delete-thing-modal', componentName: 'DeleteThingModal' },
+      ]);
+      expect(config.workspaces).toEqual([
+        {
+          name: 'thing-form-workspace',
+          title: 'Thing form',
+          componentName: 'ThingFormWorkspace',
+          type: 'form',
+        },
+      ]);
+      expect(config.featureFlags).toEqual([
+        {
+          name: 'experimental-thing',
+          label: 'Experimental thing',
+          description: 'Enables the experimental thing.',
+        },
+      ]);
+    } finally {
+      Reflect.deleteProperty(process.stdin, 'isTTY');
+      vi.unstubAllEnvs();
+    }
   });
 });

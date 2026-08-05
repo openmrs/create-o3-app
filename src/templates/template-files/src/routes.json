@@ -43,7 +43,7 @@
 {{#each workspaces}}
     {
       "name": "{{this.name}}",
-      "title": "{{this.title}}",
+      "title": {{{json this.title}}},
       "component": "{{camelCase this.componentName}}",
       "type": "{{this.type}}"
     }{{#unless @last}},{{/unless}}
@@ -53,10 +53,9 @@
 {{#each featureFlags}}
     {
       "flagName": "{{this.name}}",
-      "label": "{{this.label}}",
-      "description": "{{this.description}}"
+      "label": {{{json this.label}}},
+      "description": {{{json this.description}}}
     }{{#unless @last}},{{/unless}}
 {{/each}}
   ]{{/if}}
 }
-
