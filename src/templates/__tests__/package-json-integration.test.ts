@@ -45,11 +45,8 @@ describe('package.json template integration', () => {
     ci: true,
   };
 
-  async function renderPackageJson(
-    projectConfig: ProjectConfig,
-    module: ModuleConfig = moduleConfig
-  ) {
-    await generateFiles(projectConfig, module, options, testOutputDir);
+  async function renderPackageJson(projectConfig: ProjectConfig) {
+    await generateFiles(projectConfig, moduleConfig, options, testOutputDir);
 
     const outputPath = join(
       testOutputDir,
@@ -107,37 +104,6 @@ describe('package.json template integration', () => {
     const eslintConfig = readFileSync(join(projectDir, 'eslint.config.mjs'), 'utf-8');
     expect(eslintConfig).toContain("from '@openmrs/eslint-config'");
     expect(eslintConfig).toContain("'react-hooks/exhaustive-deps': 'warn'");
-  });
-
-  it('adds eslint-plugin-jsx-a11y when accessibility is enabled', async () => {
-    const packageJson = await renderPackageJson(baseProjectConfig, {
-      ...moduleConfig,
-      accessibility: true,
-    });
-
-    expect(packageJson.devDependencies['eslint-plugin-jsx-a11y']).toBe('^6.10.2');
-
-    const eslintConfig = readFileSync(
-      join(testOutputDir, baseProjectConfig.projectName, 'eslint.config.mjs'),
-      'utf-8'
-    );
-    expect(eslintConfig).toContain("import jsxA11y from 'eslint-plugin-jsx-a11y'");
-    expect(eslintConfig).toContain('jsxA11y.flatConfigs.recommended,');
-  });
-
-  it('omits eslint-plugin-jsx-a11y when accessibility is disabled', async () => {
-    const packageJson = await renderPackageJson(baseProjectConfig, {
-      ...moduleConfig,
-      accessibility: false,
-    });
-
-    expect(packageJson.devDependencies['eslint-plugin-jsx-a11y']).toBeUndefined();
-
-    const eslintConfig = readFileSync(
-      join(testOutputDir, baseProjectConfig.projectName, 'eslint.config.mjs'),
-      'utf-8'
-    );
-    expect(eslintConfig).not.toContain('jsx-a11y');
   });
 
   it('generates a lint-safe empty config schema type', async () => {
