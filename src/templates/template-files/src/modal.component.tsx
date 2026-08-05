@@ -14,11 +14,11 @@ const {{pascalCase currentModal.componentName}}: React.FC<{{pascalCase currentMo
     <>
       <ModalHeader
         closeModal={close}
-        title={t('{{kebabCase currentModal.componentName}}Title', '{{pascalCase currentModal.componentName}}')}
+        title={t('{{camelCase currentModal.componentName}}Title', '{{pascalCase currentModal.componentName}}')}
       />
       <ModalBody>
         <p className={styles.body}>
-          {t('{{kebabCase currentModal.componentName}}Body', 'This is the {{currentModal.name}} modal.')}
+          {t('{{camelCase currentModal.componentName}}Body', 'This is the {{currentModal.name}} modal.')}
         </p>
       </ModalBody>
       <ModalFooter>
