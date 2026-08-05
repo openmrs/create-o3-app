@@ -4,8 +4,10 @@ import type { ProjectConfig, ModuleConfig, CreateOptions } from '../../types/ind
 import {
   validateComponentName,
   validateExtensionName,
+  validateFeatureFlagName,
   validateSlotName,
   validateBackendDependency,
+  validateWorkspaceName,
 } from '../../validators/index.js';
 
 export async function promptModuleConfig(
@@ -179,7 +181,46 @@ export async function promptModuleConfig(
     });
     if (modalsResponse.create) {
       config.modals = [];
-      // TODO: Prompt for modals
+      let addMore = true;
+      while (addMore) {
+        const modal = await prompts({
+          type: 'text',
+          name: 'name',
+          message: 'Modal name:',
+          validate: (value: string) => {
+            if (!value) return 'Modal name is required';
+            const validation = validateExtensionName(value);
+            if (!validation.success) {
+              return validation.errors[0] || 'Invalid modal name';
+            }
+            return true;
+          },
+        });
+        const component = await prompts({
+          type: 'text',
+          name: 'name',
+          message: 'Component name:',
+          validate: (value: string) => {
+            if (!value) return 'Component name is required';
+            const validation = validateComponentName(value);
+            if (!validation.success) {
+              return validation.errors[0] || 'Invalid component name';
+            }
+            return true;
+          },
+        });
+        config.modals.push({
+          name: modal.name,
+          componentName: component.name,
+        });
+        const more = await prompts({
+          type: 'confirm',
+          name: 'addMore',
+          message: 'Add more modals?',
+          initial: false,
+        });
+        addMore = more.addMore;
+      }
     }
   } else {
     config.modals = undefined;
@@ -195,7 +236,65 @@ export async function promptModuleConfig(
     });
     if (workspacesResponse.create) {
       config.workspaces = [];
-      // TODO: Prompt for workspaces
+      let addMore = true;
+      while (addMore) {
+        const workspace = await prompts({
+          type: 'text',
+          name: 'name',
+          message: 'Workspace name:',
+          validate: (value: string) => {
+            if (!value) return 'Workspace name is required';
+            const validation = validateWorkspaceName(value);
+            if (!validation.success) {
+              return validation.errors[0] || 'Invalid workspace name';
+            }
+            return true;
+          },
+        });
+        const title = await prompts({
+          type: 'text',
+          name: 'title',
+          message: 'Workspace title:',
+          validate: (value: string) => (value ? true : 'Workspace title is required'),
+        });
+        const component = await prompts({
+          type: 'text',
+          name: 'name',
+          message: 'Component name:',
+          validate: (value: string) => {
+            if (!value) return 'Component name is required';
+            const validation = validateComponentName(value);
+            if (!validation.success) {
+              return validation.errors[0] || 'Invalid component name';
+            }
+            return true;
+          },
+        });
+        const workspaceType = await prompts({
+          type: 'select',
+          name: 'type',
+          message: 'Workspace type:',
+          choices: [
+            { title: 'Form', value: 'form' },
+            { title: 'Chart', value: 'chart' },
+            { title: 'Other', value: 'other' },
+          ],
+          initial: 0,
+        });
+        config.workspaces.push({
+          name: workspace.name,
+          title: title.title,
+          componentName: component.name,
+          type: workspaceType.type,
+        });
+        const more = await prompts({
+          type: 'confirm',
+          name: 'addMore',
+          message: 'Add more workspaces?',
+          initial: false,
+        });
+        addMore = more.addMore;
+      }
     }
   } else {
     config.workspaces = undefined;
@@ -211,7 +310,46 @@ export async function promptModuleConfig(
     });
     if (featureFlagsResponse.create) {
       config.featureFlags = [];
-      // TODO: Prompt for feature flags
+      let addMore = true;
+      while (addMore) {
+        const flag = await prompts({
+          type: 'text',
+          name: 'name',
+          message: 'Feature flag name:',
+          validate: (value: string) => {
+            if (!value) return 'Feature flag name is required';
+            const validation = validateFeatureFlagName(value);
+            if (!validation.success) {
+              return validation.errors[0] || 'Invalid feature flag name';
+            }
+            return true;
+          },
+        });
+        const label = await prompts({
+          type: 'text',
+          name: 'label',
+          message: 'Feature flag label:',
+          validate: (value: string) => (value ? true : 'Feature flag label is required'),
+        });
+        const description = await prompts({
+          type: 'text',
+          name: 'description',
+          message: 'Feature flag description:',
+          validate: (value: string) => (value ? true : 'Feature flag description is required'),
+        });
+        config.featureFlags.push({
+          name: flag.name,
+          label: label.label,
+          description: description.description,
+        });
+        const more = await prompts({
+          type: 'confirm',
+          name: 'addMore',
+          message: 'Add more feature flags?',
+          initial: false,
+        });
+        addMore = more.addMore;
+      }
     }
   } else {
     config.featureFlags = undefined;

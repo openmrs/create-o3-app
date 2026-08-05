@@ -52,7 +52,7 @@
   "featureFlags": [
 {{#each featureFlags}}
     {
-      "name": "{{this.name}}",
+      "flagName": "{{this.name}}",
       "label": "{{this.label}}",
       "description": "{{this.description}}"
     }{{#unless @last}},{{/unless}}

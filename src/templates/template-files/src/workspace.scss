@@ -1,0 +1,29 @@
+@use '@carbon/layout';
+@use '@carbon/type';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.content {
+  padding: layout.$spacing-05;
+}
+
+.description {
+  @include type.type-style('body-01');
+  color: var(--cds-text-primary);
+}
+
+.buttonSet {
+  display: flex;
+  width: 100%;
+}
+
+.button {
+  max-width: 50%;
+  width: 50%;
+  height: layout.$spacing-10;
+}

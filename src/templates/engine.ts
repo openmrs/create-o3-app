@@ -8,6 +8,8 @@ import type {
   CreateOptions,
   RouteConfig,
   ExtensionConfig,
+  ModalConfig,
+  WorkspaceConfig,
 } from '../types/index.js';
 import { getTemplateInfo } from './loader.js';
 
@@ -181,7 +183,12 @@ function renderFile(
 function renderComponentFile(
   templatePath: string,
   outputPath: string,
-  context: TemplateContext & { currentRoute?: RouteConfig; currentExtension?: ExtensionConfig },
+  context: TemplateContext & {
+    currentRoute?: RouteConfig;
+    currentExtension?: ExtensionConfig;
+    currentModal?: ModalConfig;
+    currentWorkspace?: WorkspaceConfig;
+  },
   isDryRun: boolean
 ): void {
   const content = readFileSync(templatePath, 'utf-8');
@@ -312,6 +319,78 @@ export async function generateFiles(
             templatePath,
             outputPath,
             { ...context, currentExtension: extension },
+            options.dryRun || false
+          );
+          fileCount++;
+        }
+      }
+      continue;
+    }
+
+    if (templateFile === 'src/modal.component.tsx') {
+      // Generate individual component files for each modal
+      if (moduleConfig.modals) {
+        for (const modal of moduleConfig.modals) {
+          const componentName = context.kebabCase(modal.componentName);
+          const outputPath = join(outputDir, 'src', `${componentName}.component.tsx`);
+          renderComponentFile(
+            templatePath,
+            outputPath,
+            { ...context, currentModal: modal },
+            options.dryRun || false
+          );
+          fileCount++;
+        }
+      }
+      continue;
+    }
+
+    if (templateFile === 'src/modal.scss') {
+      // Generate individual SCSS files for each modal
+      if (moduleConfig.modals) {
+        for (const modal of moduleConfig.modals) {
+          const componentName = context.kebabCase(modal.componentName);
+          const outputPath = join(outputDir, 'src', `${componentName}.scss`);
+          renderComponentFile(
+            templatePath,
+            outputPath,
+            { ...context, currentModal: modal },
+            options.dryRun || false
+          );
+          fileCount++;
+        }
+      }
+      continue;
+    }
+
+    if (templateFile === 'src/workspace.component.tsx') {
+      // Generate individual component files for each workspace
+      if (moduleConfig.workspaces) {
+        for (const workspace of moduleConfig.workspaces) {
+          const componentName = context.kebabCase(workspace.componentName);
+          const outputPath = join(outputDir, 'src', `${componentName}.component.tsx`);
+          renderComponentFile(
+            templatePath,
+            outputPath,
+            { ...context, currentWorkspace: workspace },
+            options.dryRun || false
+          );
+          fileCount++;
+        }
+      }
+      continue;
+    }
+
+    if (templateFile === 'src/workspace.scss') {
+      // Generate individual SCSS files for each workspace
+      if (moduleConfig.workspaces) {
+        for (const workspace of moduleConfig.workspaces) {
+          const componentName = context.kebabCase(workspace.componentName);
+          const outputPath = join(outputDir, 'src', `${componentName}.scss`);
+          renderComponentFile(
+            templatePath,
+            outputPath,
+            { ...context, currentWorkspace: workspace },
             options.dryRun || false
           );
           fileCount++;

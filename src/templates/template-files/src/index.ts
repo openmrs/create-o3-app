@@ -1,4 +1,4 @@
-import { getAsyncLifecycle, getSyncLifecycle, defineConfigSchema } from '@openmrs/esm-framework';
+import { getAsyncLifecycle, defineConfigSchema } from '@openmrs/esm-framework';
 import { configSchema } from './config-schema';
 import { moduleName } from './constants';
 
@@ -19,7 +19,7 @@ export const root = getAsyncLifecycle(() => import('./root.component'), options)
 // Extensions
 {{#if extensions}}
 {{#each extensions}}
-export const {{camelCase this.componentName}} = getSyncLifecycle(
+export const {{camelCase this.componentName}} = getAsyncLifecycle(
   () => import('./{{kebabCase this.componentName}}.component'),
   options
 );

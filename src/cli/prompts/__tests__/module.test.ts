@@ -47,4 +47,14 @@ describe('promptModuleConfig (non-interactive)', () => {
     expect(config.coverageThresholds).toBe(true);
     expect(config.pathAliases).toBeUndefined();
   });
+
+  it('leaves modals, workspaces, and feature flags undefined', async () => {
+    const options: CreateOptions = { quiet: true };
+
+    const config = await promptModuleConfig(projectConfig, options);
+
+    expect(config.modals).toBeUndefined();
+    expect(config.workspaces).toBeUndefined();
+    expect(config.featureFlags).toBeUndefined();
+  });
 });
