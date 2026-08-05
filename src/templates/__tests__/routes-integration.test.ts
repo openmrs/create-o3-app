@@ -289,7 +289,7 @@ describe('routes.json Integration', () => {
           name: 'thing-form-workspace',
           title: 'Thing form: R&D "review"',
           componentName: 'ThingFormWorkspace',
-          type: 'form',
+          type: 'custom "quoted" \\ type',
         },
       ],
       featureFlags: [
@@ -336,7 +336,7 @@ describe('routes.json Integration', () => {
           name: 'thing-form-workspace',
           title: 'Thing form: R&D "review"',
           component: 'thingFormWorkspace',
-          type: 'form',
+          type: 'custom "quoted" \\ type',
         },
       ]);
       // The routes schema requires flagName, not name

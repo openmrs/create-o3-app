@@ -27,7 +27,7 @@
       "offline": {{this.offline}}{{/if}}{{#if this.order}},
       "order": {{this.order}}{{/if}}{{#if this.featureFlag}},
       "featureFlag": "{{this.featureFlag}}"{{/if}}{{#if this.meta}},
-      "meta": {{json this.meta}}{{/if}}
+      "meta": {{{json this.meta}}}{{/if}}
     }{{#unless @last}},{{/unless}}
 {{/each}}
   ]{{#if modals}},
@@ -45,7 +45,7 @@
       "name": "{{this.name}}",
       "title": {{{json this.title}}},
       "component": "{{camelCase this.componentName}}",
-      "type": "{{this.type}}"
+      "type": {{{json this.type}}}
     }{{#unless @last}},{{/unless}}
 {{/each}}
   ]{{/if}}{{#if featureFlags}},
