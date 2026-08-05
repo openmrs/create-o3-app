@@ -79,16 +79,31 @@ describe('package.json template integration', () => {
     expect(Object.values(packageJson.devDependencies)).not.toContain('workspace:*');
   });
 
-  it('includes the eslint plugins referenced by the generated eslint config', async () => {
+  it('references the shared eslint config instead of individual plugins', async () => {
     const packageJson = await renderPackageJson(baseProjectConfig);
 
-    expect(packageJson.devDependencies['@typescript-eslint/eslint-plugin']).toBeDefined();
-    expect(packageJson.devDependencies['@typescript-eslint/parser']).toBeDefined();
-    expect(packageJson.devDependencies['eslint-plugin-import']).toBeDefined();
-    expect(packageJson.devDependencies['eslint-plugin-jest-dom']).toBeDefined();
-    expect(packageJson.devDependencies['eslint-plugin-playwright']).toBeDefined();
-    expect(packageJson.devDependencies['eslint-plugin-react-hooks']).toBeDefined();
-    expect(packageJson.devDependencies['eslint-plugin-testing-library']).toBeDefined();
+    expect(packageJson.devDependencies['@openmrs/eslint-config']).toBeDefined();
+    expect(packageJson.devDependencies['eslint']).toBe('^9.39.0');
+    // Provided by @openmrs/eslint-config, so generated apps must not declare them.
+    expect(packageJson.devDependencies['@typescript-eslint/eslint-plugin']).toBeUndefined();
+    expect(packageJson.devDependencies['@typescript-eslint/parser']).toBeUndefined();
+    expect(packageJson.devDependencies['eslint-plugin-import']).toBeUndefined();
+    expect(packageJson.devDependencies['eslint-plugin-jest-dom']).toBeUndefined();
+    expect(packageJson.devDependencies['eslint-plugin-playwright']).toBeUndefined();
+    expect(packageJson.devDependencies['eslint-plugin-react-hooks']).toBeUndefined();
+    expect(packageJson.devDependencies['eslint-plugin-testing-library']).toBeUndefined();
+  });
+
+  it('generates a flat eslint config that composes the shared config', async () => {
+    await generateFiles(baseProjectConfig, moduleConfig, options, testOutputDir);
+
+    const projectDir = join(testOutputDir, baseProjectConfig.projectName);
+    expect(existsSync(join(projectDir, 'eslint.config.mjs'))).toBe(true);
+    expect(existsSync(join(projectDir, '.eslintrc'))).toBe(false);
+
+    const eslintConfig = readFileSync(join(projectDir, 'eslint.config.mjs'), 'utf-8');
+    expect(eslintConfig).toContain("from '@openmrs/eslint-config'");
+    expect(eslintConfig).toContain("'react-hooks/exhaustive-deps': 'warn'");
   });
 
   it('generates a lint-safe empty config schema type', async () => {
