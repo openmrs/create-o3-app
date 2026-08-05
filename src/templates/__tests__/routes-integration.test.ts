@@ -185,4 +185,97 @@ describe('routes.json Integration', () => {
       }
     }
   });
+
+  it('reflects per-route and per-extension offline values in routes.json', async () => {
+    const mockModuleConfig: ModuleConfig = {
+      type: 'both',
+      offline: true,
+      routes: [{ path: '/test', componentName: 'TestComponent', online: true, offline: true }],
+      extensions: [
+        {
+          name: 'test-extension',
+          slot: 'test-slot',
+          componentName: 'TestExtensionComponent',
+          online: true,
+          offline: true,
+        },
+      ],
+    };
+
+    const testTemplatePath = join(process.cwd(), 'test-offline-routes-templates');
+    mkdirSync(join(testTemplatePath, 'src'), { recursive: true });
+
+    // Copy the real routes.json template
+    const realTemplatePath = join(
+      process.cwd(),
+      'src',
+      'templates',
+      'template-files',
+      'src',
+      'routes.json'
+    );
+    writeFileSync(join(testTemplatePath, 'src', 'routes.json'), readFileSync(realTemplatePath, 'utf-8'));
+
+    const { getTemplateInfo } = await import('../loader.js');
+    vi.mocked(getTemplateInfo).mockResolvedValue({
+      version: 'latest',
+      path: testTemplatePath,
+    });
+
+    try {
+      await generateFiles(mockProjectConfig, mockModuleConfig, mockOptions, testOutputDir);
+
+      const outputPath = join(testOutputDir, 'test-routes-module', 'src', 'routes.json');
+      const parsed = JSON.parse(readFileSync(outputPath, 'utf-8'));
+
+      expect(parsed.pages[0].offline).toBe(true);
+      expect(parsed.extensions[0].offline).toBe(true);
+    } finally {
+      if (existsSync(testTemplatePath)) {
+        rmSync(testTemplatePath, { recursive: true });
+      }
+    }
+  });
+
+  it('omits the offline key from routes.json when offline support is declined', async () => {
+    const mockModuleConfig: ModuleConfig = {
+      type: 'page',
+      offline: false,
+      routes: [{ path: '/test', componentName: 'TestComponent', online: true, offline: false }],
+    };
+
+    const testTemplatePath = join(process.cwd(), 'test-no-offline-routes-templates');
+    mkdirSync(join(testTemplatePath, 'src'), { recursive: true });
+
+    // Copy the real routes.json template
+    const realTemplatePath = join(
+      process.cwd(),
+      'src',
+      'templates',
+      'template-files',
+      'src',
+      'routes.json'
+    );
+    writeFileSync(join(testTemplatePath, 'src', 'routes.json'), readFileSync(realTemplatePath, 'utf-8'));
+
+    const { getTemplateInfo } = await import('../loader.js');
+    vi.mocked(getTemplateInfo).mockResolvedValue({
+      version: 'latest',
+      path: testTemplatePath,
+    });
+
+    try {
+      await generateFiles(mockProjectConfig, mockModuleConfig, mockOptions, testOutputDir);
+
+      const outputPath = join(testOutputDir, 'test-routes-module', 'src', 'routes.json');
+      const parsed = JSON.parse(readFileSync(outputPath, 'utf-8'));
+
+      expect(parsed.pages[0].offline).toBeUndefined();
+      expect(parsed.pages[0].online).toBe(true);
+    } finally {
+      if (existsSync(testTemplatePath)) {
+        rmSync(testTemplatePath, { recursive: true });
+      }
+    }
+  });
 });

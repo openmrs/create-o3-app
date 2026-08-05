@@ -45,9 +45,6 @@ describe('promptModuleConfig (non-interactive)', () => {
     const config = await promptModuleConfig(projectConfig, options);
 
     expect(config.coverageThresholds).toBe(true);
-    expect(config.accessibility).toBe(true);
-    expect(config.dependabot).toBe(true);
-    expect(config.contributing).toBe(true);
-    expect(config.turbo).toBe(false);
+    expect(config.pathAliases).toBeUndefined();
   });
 });

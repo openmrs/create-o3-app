@@ -262,10 +262,6 @@ export async function promptModuleConfig(
     config.offline = false;
     config.pathAliases = undefined;
     config.coverageThresholds = true;
-    config.accessibility = true;
-    config.dependabot = true;
-    config.contributing = true;
-    config.turbo = false;
   } else {
     config.offline = (
       await prompts({
@@ -295,42 +291,6 @@ export async function promptModuleConfig(
         initial: true,
       })
     ).coverage;
-
-    config.accessibility = (
-      await prompts({
-        type: 'confirm',
-        name: 'accessibility',
-        message: 'Add eslint-plugin-jsx-a11y for accessibility?',
-        initial: true,
-      })
-    ).accessibility;
-
-    config.dependabot = (
-      await prompts({
-        type: 'confirm',
-        name: 'dependabot',
-        message: 'Set up Dependabot for dependency updates?',
-        initial: true,
-      })
-    ).dependabot;
-
-    config.contributing = (
-      await prompts({
-        type: 'confirm',
-        name: 'contributing',
-        message: 'Generate CONTRIBUTING.md?',
-        initial: true,
-      })
-    ).contributing;
-
-    config.turbo = (
-      await prompts({
-        type: 'confirm',
-        name: 'turbo',
-        message: 'Include turbo.json for consistent commands?',
-        initial: false,
-      })
-    ).turbo;
   }
 
   // Apply the offline support answer to the generated routes and extensions

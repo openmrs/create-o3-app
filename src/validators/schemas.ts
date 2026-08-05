@@ -236,10 +236,6 @@ export const moduleConfigSchema = z.object({
   offline: z.boolean().optional(),
   pathAliases: z.array(pathAliasSchema).optional(),
   coverageThresholds: z.boolean().optional(),
-  accessibility: z.boolean().optional(),
-  dependabot: z.boolean().optional(),
-  contributing: z.boolean().optional(),
-  turbo: z.boolean().optional(),
 });
 
 /**

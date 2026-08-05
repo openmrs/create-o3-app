@@ -37,10 +37,6 @@ export interface ModuleConfig {
   offline?: boolean;
   pathAliases?: string[];
   coverageThresholds?: boolean;
-  accessibility?: boolean;
-  dependabot?: boolean;
-  contributing?: boolean;
-  turbo?: boolean;
 }
 
 export interface RouteConfig {
