@@ -89,7 +89,7 @@ describe('Modal and workspace component generation', () => {
   it('generates a component and stylesheet per modal', async () => {
     await generateFiles(mockProjectConfig, moduleConfig, mockOptions, testOutputDir);
 
-    const componentPath = join(outputSrc, 'delete-thing-modal.component.tsx');
+    const componentPath = join(outputSrc, 'delete-thing-modal.modal.tsx');
     expect(existsSync(componentPath)).toBe(true);
     expect(existsSync(join(outputSrc, 'delete-thing-modal.scss'))).toBe(true);
 
@@ -103,7 +103,7 @@ describe('Modal and workspace component generation', () => {
   it('generates a component and stylesheet per workspace', async () => {
     await generateFiles(mockProjectConfig, moduleConfig, mockOptions, testOutputDir);
 
-    const componentPath = join(outputSrc, 'thing-form-workspace.component.tsx');
+    const componentPath = join(outputSrc, 'thing-form-workspace.workspace.tsx');
     expect(existsSync(componentPath)).toBe(true);
     expect(existsSync(join(outputSrc, 'thing-form-workspace.scss'))).toBe(true);
 
@@ -122,10 +122,10 @@ describe('Modal and workspace component generation', () => {
       "export const testExtension = getAsyncLifecycle(\n  () => import('./test-extension.component'),"
     );
     expect(content).toContain(
-      "export const deleteThingModal = getAsyncLifecycle(\n  () => import('./delete-thing-modal.component'),"
+      "export const deleteThingModal = getAsyncLifecycle(\n  () => import('./delete-thing-modal.modal'),"
     );
     expect(content).toContain(
-      "export const thingFormWorkspace = getAsyncLifecycle(\n  () => import('./thing-form-workspace.component'),"
+      "export const thingFormWorkspace = getAsyncLifecycle(\n  () => import('./thing-form-workspace.workspace'),"
     );
     // getSyncLifecycle takes a component, not an import thunk; it must not be used here
     expect(content).not.toContain('getSyncLifecycle');
@@ -148,8 +148,8 @@ describe('Modal and workspace component generation', () => {
       testOutputDir
     );
 
-    expect(existsSync(join(outputSrc, 'delete-thing-modal.component.tsx'))).toBe(false);
-    expect(existsSync(join(outputSrc, 'thing-form-workspace.component.tsx'))).toBe(false);
+    expect(existsSync(join(outputSrc, 'delete-thing-modal.modal.tsx'))).toBe(false);
+    expect(existsSync(join(outputSrc, 'thing-form-workspace.workspace.tsx'))).toBe(false);
     expect(existsSync(join(outputSrc, 'modal.component.tsx'))).toBe(false);
     expect(existsSync(join(outputSrc, 'workspace.component.tsx'))).toBe(false);
   });

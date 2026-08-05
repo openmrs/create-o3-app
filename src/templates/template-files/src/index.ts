@@ -30,7 +30,7 @@ export const {{camelCase this.componentName}} = getAsyncLifecycle(
 {{#if modals}}
 {{#each modals}}
 export const {{camelCase this.componentName}} = getAsyncLifecycle(
-  () => import('./{{kebabCase this.componentName}}.component'),
+  () => import('./{{kebabCase this.componentName}}.modal'),
   options
 );
 {{/each}}
@@ -40,7 +40,7 @@ export const {{camelCase this.componentName}} = getAsyncLifecycle(
 {{#if workspaces}}
 {{#each workspaces}}
 export const {{camelCase this.componentName}} = getAsyncLifecycle(
-  () => import('./{{kebabCase this.componentName}}.component'),
+  () => import('./{{kebabCase this.componentName}}.workspace'),
   options
 );
 {{/each}}

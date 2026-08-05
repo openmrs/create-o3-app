@@ -328,11 +328,11 @@ export async function generateFiles(
     }
 
     if (templateFile === 'src/modal.component.tsx') {
-      // Generate individual component files for each modal
+      // Generate individual component files for each modal (O3 convention: .modal.tsx)
       if (moduleConfig.modals) {
         for (const modal of moduleConfig.modals) {
           const componentName = context.kebabCase(modal.componentName);
-          const outputPath = join(outputDir, 'src', `${componentName}.component.tsx`);
+          const outputPath = join(outputDir, 'src', `${componentName}.modal.tsx`);
           renderComponentFile(
             templatePath,
             outputPath,
@@ -364,11 +364,11 @@ export async function generateFiles(
     }
 
     if (templateFile === 'src/workspace.component.tsx') {
-      // Generate individual component files for each workspace
+      // Generate individual component files for each workspace (O3 convention: .workspace.tsx)
       if (moduleConfig.workspaces) {
         for (const workspace of moduleConfig.workspaces) {
           const componentName = context.kebabCase(workspace.componentName);
-          const outputPath = join(outputDir, 'src', `${componentName}.component.tsx`);
+          const outputPath = join(outputDir, 'src', `${componentName}.workspace.tsx`);
           renderComponentFile(
             templatePath,
             outputPath,
