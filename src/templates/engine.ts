@@ -12,6 +12,7 @@ import type {
   WorkspaceConfig,
 } from '../types/index.js';
 import { getTemplateInfo } from './loader.js';
+import { ValidationError } from '../utils/errors.js';
 
 export interface TemplateContext extends ProjectConfig {
   module: ModuleConfig;
@@ -91,6 +92,13 @@ function registerHelpers(): void {
 // Register helpers once
 registerHelpers();
 
+function toKebabCase(str: string): string {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/[\s_]+/g, '-')
+    .toLowerCase();
+}
+
 /**
  * Derive the generated file basename for a modal or workspace component: the
  * kebab-cased component name with any trailing kind suffix stripped, since the
@@ -101,10 +109,55 @@ function componentFileBaseName(componentName: string, kind: 'Modal' | 'Workspace
     componentName.length > kind.length && componentName.endsWith(kind)
       ? componentName.slice(0, -kind.length)
       : componentName;
-  return stripped
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/[\s_]+/g, '-')
-    .toLowerCase();
+  return toKebabCase(stripped);
+}
+
+/**
+ * Fail fast when two configured components would generate the same output
+ * file. Component names are distinct inputs, but the derived basenames can
+ * collide: `DeleteThing` and `DeleteThingModal` both map to
+ * delete-thing.modal.tsx, and a modal and workspace with matching basenames
+ * both emit the same stylesheet. The same component reused across entries of
+ * one kind renders identical content, so only claims from different
+ * components are collisions.
+ */
+function assertNoOutputCollisions(moduleConfig: ModuleConfig): void {
+  const owners = new Map<string, string>();
+  const claim = (file: string, owner: string) => {
+    const existing = owners.get(file);
+    if (existing && existing !== owner) {
+      throw new ValidationError(
+        `${owner} and ${existing} would both generate src/${file}. Rename one of the components so the generated files do not overwrite each other.`,
+        'componentName'
+      );
+    }
+    owners.set(file, owner);
+  };
+
+  for (const route of moduleConfig.routes ?? []) {
+    const base = toKebabCase(route.componentName);
+    const owner = `Page component "${route.componentName}"`;
+    claim(`${base}.component.tsx`, owner);
+    claim(`${base}.scss`, owner);
+  }
+  for (const extension of moduleConfig.extensions ?? []) {
+    const base = toKebabCase(extension.componentName);
+    const owner = `Extension component "${extension.componentName}"`;
+    claim(`${base}.component.tsx`, owner);
+    claim(`${base}.scss`, owner);
+  }
+  for (const modal of moduleConfig.modals ?? []) {
+    const base = componentFileBaseName(modal.componentName, 'Modal');
+    const owner = `Modal component "${modal.componentName}"`;
+    claim(`${base}.modal.tsx`, owner);
+    claim(`${base}.scss`, owner);
+  }
+  for (const workspace of moduleConfig.workspaces ?? []) {
+    const base = componentFileBaseName(workspace.componentName, 'Workspace');
+    const owner = `Workspace component "${workspace.componentName}"`;
+    claim(`${base}.workspace.tsx`, owner);
+    claim(`${base}.scss`, owner);
+  }
 }
 
 /**
@@ -247,6 +300,9 @@ export async function generateFiles(
   options: CreateOptions,
   baseDir: string = process.cwd()
 ): Promise<number> {
+  // Fail fast if any two components would generate the same output file
+  assertNoOutputCollisions(moduleConfig);
+
   // Get template info (templates are now embedded, version ignored)
   const templateInfo = await getTemplateInfo();
 

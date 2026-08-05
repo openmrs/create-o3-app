@@ -148,6 +148,55 @@ describe('Modal and workspace component generation', () => {
     expect(existsSync(join(outputSrc, 'workspace.scss'))).toBe(false);
   });
 
+  it('rejects modals whose derived basenames collide', async () => {
+    const colliding: ModuleConfig = {
+      type: 'page',
+      routes: [{ path: '/test', componentName: 'TestComponent' }],
+      modals: [
+        { name: 'delete-thing-modal', componentName: 'DeleteThingModal' },
+        { name: 'delete-thing-confirm-modal', componentName: 'DeleteThing' },
+      ],
+    };
+
+    await expect(
+      generateFiles(mockProjectConfig, colliding, mockOptions, testOutputDir)
+    ).rejects.toThrow(/DeleteThing.*would both generate src\/delete-thing\.modal\.tsx/);
+  });
+
+  it('rejects modal and workspace stylesheets that collide', async () => {
+    const colliding: ModuleConfig = {
+      type: 'page',
+      routes: [{ path: '/test', componentName: 'TestComponent' }],
+      modals: [{ name: 'delete-thing-modal', componentName: 'DeleteThingModal' }],
+      workspaces: [
+        {
+          name: 'delete-thing-workspace',
+          title: 'Delete thing',
+          componentName: 'DeleteThingWorkspace',
+          type: 'form',
+        },
+      ],
+    };
+
+    await expect(
+      generateFiles(mockProjectConfig, colliding, mockOptions, testOutputDir)
+    ).rejects.toThrow(/would both generate src\/delete-thing\.scss/);
+  });
+
+  it('allows the same component to back multiple entries of one kind', async () => {
+    const reused: ModuleConfig = {
+      type: 'page',
+      routes: [
+        { path: '/test', componentName: 'TestComponent' },
+        { path: '/test-alias', componentName: 'TestComponent' },
+      ],
+    };
+
+    await expect(
+      generateFiles(mockProjectConfig, reused, mockOptions, testOutputDir)
+    ).resolves.toBeGreaterThan(0);
+  });
+
   it('generates nothing extra when no modals or workspaces are configured', async () => {
     await generateFiles(
       mockProjectConfig,
