@@ -9,7 +9,6 @@ import {
   extensionNameSchema,
   slotNameSchema,
   backendDependencyInputSchema,
-  pathAliasSchema,
   workspaceNameSchema,
   featureFlagNameSchema,
   packageLocationSchema,
@@ -187,21 +186,6 @@ export function validateBackendDependency(dep: string): ValidationResult {
       return { success: false, errors: [error.message] };
     }
     return { success: false, errors: ['Invalid backend dependency format'] };
-  }
-}
-
-/**
- * Validate path alias
- */
-export function validatePathAlias(alias: string): ValidationResult {
-  try {
-    pathAliasSchema.parse(alias);
-    return { success: true, errors: [] };
-  } catch (error) {
-    if (error instanceof Error) {
-      return { success: false, errors: [error.message] };
-    }
-    return { success: false, errors: ['Invalid path alias'] };
   }
 }
 

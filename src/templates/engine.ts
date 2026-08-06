@@ -1,6 +1,7 @@
 import Handlebars from 'handlebars';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'fs';
 import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { globby } from 'globby';
 import type {
   ProjectConfig,
@@ -18,6 +19,8 @@ import { componentFileBaseName, OutputFileClaims, type ComponentKind } from './n
 export interface TemplateContext extends ProjectConfig {
   module: ModuleConfig;
   options: CreateOptions;
+  /** The CLI that generated the module, e.g. `@openmrs/create-o3-app@1.1.0` */
+  generator: string;
   /** Modals and workspaces enriched with the derived output file basename */
   modals?: Array<ModalConfig & { fileBaseName: string }>;
   workspaces?: Array<WorkspaceConfig & { fileBaseName: string }>;
@@ -93,6 +96,38 @@ function registerHelpers(): void {
 // Register helpers once
 registerHelpers();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+/**
+ * The generator label stamped into generated package.json files, e.g.
+ * `@openmrs/create-o3-app@1.1.0`. The CLI's own package.json sits one level
+ * above the bundled dist/index.js in the published package and two levels
+ * above this file in the source tree. The name check guards against reading
+ * some other package.json by accident.
+ */
+function getGeneratorLabel(): string {
+  for (const candidate of [
+    join(__dirname, '..', 'package.json'),
+    join(__dirname, '..', '..', 'package.json'),
+  ]) {
+    try {
+      const pkg = JSON.parse(readFileSync(candidate, 'utf-8')) as {
+        name?: string;
+        version?: string;
+      };
+      if (pkg.name === '@openmrs/create-o3-app' && pkg.version) {
+        return `${pkg.name}@${pkg.version}`;
+      }
+    } catch {
+      // Try the next candidate
+    }
+  }
+  return '@openmrs/create-o3-app';
+}
+
+const generatorLabel = getGeneratorLabel();
+
 /**
  * Fail fast when two configured entries would generate the same output file.
  * See OutputFileClaims for the collision classes this guards against.
@@ -141,6 +176,7 @@ function buildContext(
     })),
     module: moduleConfig,
     options,
+    generator: generatorLabel,
     kebabCase: (str: string) =>
       str
         .replace(/([a-z])([A-Z])/g, '$1-$2')

@@ -56,6 +56,12 @@ describe('package.json template integration', () => {
     return JSON.parse(readFileSync(outputPath, 'utf-8'));
   }
 
+  it('stamps the generator marker with the CLI name and version', async () => {
+    const packageJson = await renderPackageJson(baseProjectConfig);
+
+    expect(packageJson.generator).toMatch(/^@openmrs\/create-o3-app@\d+\.\d+\.\d+$/);
+  });
+
   it('generates installable rspack dependencies for standalone modules', async () => {
     const packageJson = await renderPackageJson(baseProjectConfig);
 

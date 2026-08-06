@@ -44,15 +44,6 @@ describe('promptModuleConfig (non-interactive)', () => {
     expect(config.routes?.[0].offline).toBe(false);
   });
 
-  it('uses the documented defaults for optional features', async () => {
-    const options: CreateOptions = { quiet: true };
-
-    const config = await promptModuleConfig(projectConfig, options);
-
-    expect(config.coverageThresholds).toBe(true);
-    expect(config.pathAliases).toBeUndefined();
-  });
-
   it('leaves modals, workspaces, and feature flags undefined', async () => {
     const options: CreateOptions = { quiet: true };
 
@@ -85,9 +76,7 @@ describe('promptModuleConfig (interactive standalone)', () => {
       .mockResolvedValueOnce({ description: 'Enables the experimental thing.' })
       .mockResolvedValueOnce({ addMore: false })
       .mockResolvedValueOnce({ dependencies: '' })
-      .mockResolvedValueOnce({ offline: false })
-      .mockResolvedValueOnce({ pathAliases: false })
-      .mockResolvedValueOnce({ coverage: true });
+      .mockResolvedValueOnce({ offline: false });
 
     Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
     vi.stubEnv('CI', 'false');
@@ -137,9 +126,7 @@ describe('promptModuleConfig (interactive standalone)', () => {
       .mockResolvedValueOnce({ create: false })
       .mockResolvedValueOnce({ create: false })
       .mockResolvedValueOnce({ dependencies: '' })
-      .mockResolvedValueOnce({ offline: false })
-      .mockResolvedValueOnce({ pathAliases: false })
-      .mockResolvedValueOnce({ coverage: true });
+      .mockResolvedValueOnce({ offline: false });
 
     Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
     vi.stubEnv('CI', 'false');
@@ -166,9 +153,7 @@ describe('promptModuleConfig (interactive standalone)', () => {
       .mockResolvedValueOnce({ create: false })
       .mockResolvedValueOnce({ create: false })
       .mockResolvedValueOnce({ dependencies: '' })
-      .mockResolvedValueOnce({ offline: false })
-      .mockResolvedValueOnce({ pathAliases: false })
-      .mockResolvedValueOnce({ coverage: true });
+      .mockResolvedValueOnce({ offline: false });
 
     Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
     vi.stubEnv('CI', 'false');
