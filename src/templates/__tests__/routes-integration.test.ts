@@ -33,12 +33,10 @@ describe('routes.json Integration', () => {
     isMonorepo: false,
     isNewMonorepo: false,
     git: true,
-    ci: true,
   };
 
   const mockOptions: CreateOptions = {
     git: true,
-    ci: true,
     dryRun: false,
     verbose: false,
     quiet: false,

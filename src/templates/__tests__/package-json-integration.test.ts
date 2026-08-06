@@ -42,7 +42,6 @@ describe('package.json template integration', () => {
     isMonorepo: false,
     isNewMonorepo: false,
     git: true,
-    ci: true,
   };
 
   async function renderPackageJson(projectConfig: ProjectConfig) {

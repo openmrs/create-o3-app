@@ -34,7 +34,7 @@ export async function promptModuleConfig(
   // Determine module type from options
   // If route/component provided, assume 'page'
   // Otherwise prompt (unless non-interactive, in which case default to 'page')
-  let moduleType: 'page' | 'extension' | 'both' | 'modal' = 'page';
+  let moduleType: 'page' | 'extension' | 'both' = 'page';
 
   if (options.route || componentName) {
     moduleType = 'page';
@@ -178,11 +178,28 @@ export async function promptModuleConfig(
         validate: componentNameValidator('extension'),
       });
       if (cancelled(component.name)) break;
+      const featureFlag = await prompts({
+        type: 'text',
+        name: 'name',
+        message:
+          "Feature flag to gate this extension (yours or another module's; leave empty for none):",
+        initial: '',
+        validate: (value: string) => {
+          if (!value) return true;
+          const validation = validateFeatureFlagName(value);
+          if (!validation.success) {
+            return validation.errors[0] || 'Invalid feature flag name';
+          }
+          return true;
+        },
+      });
+      if (cancelled(featureFlag.name)) break;
       config.extensions.push({
         name: extension.name,
         slot: slot.name,
         componentName: component.name,
         online: true,
+        featureFlag: featureFlag.name || undefined,
       });
       usedNames.add(extension.name);
       fileClaims.claim('extension', component.name);
@@ -388,6 +405,26 @@ export async function promptModuleConfig(
     config.featureFlags = undefined;
   }
 
+  // Confirm feature flag references that no local definition matches: a
+  // cross-module reference is valid, but if the name is a typo that no app
+  // registers, the framework filters the extension out forever
+  if (!isNonInteractive && config.extensions?.length) {
+    const definedFlags = new Set((config.featureFlags ?? []).map((flag) => flag.name));
+    for (const extension of config.extensions) {
+      if (extension.featureFlag && !definedFlags.has(extension.featureFlag)) {
+        const response = await prompts({
+          type: 'confirm',
+          name: 'keep',
+          message: `"${extension.featureFlag}" (gating extension "${extension.name}") is not defined in this module. Keep it as a reference to a flag registered by another module?`,
+          initial: false,
+        });
+        if (!response.keep) {
+          delete extension.featureFlag;
+        }
+      }
+    }
+  }
+
   // Backend dependencies (skip if non-interactive mode)
   if (!isNonInteractive) {
     const backendDeps = await prompts({
@@ -436,7 +473,7 @@ export async function promptModuleConfig(
       await prompts({
         type: 'confirm',
         name: 'offline',
-        message: 'Add offline support?',
+        message: 'Mark pages and extensions as available offline in routes.json?',
         initial: false,
       })
     ).offline;

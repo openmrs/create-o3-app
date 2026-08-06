@@ -15,7 +15,6 @@ const projectConfig: ProjectConfig = {
   isMonorepo: false,
   isNewMonorepo: false,
   git: true,
-  ci: true,
 };
 
 describe('promptModuleConfig (non-interactive)', () => {
@@ -136,6 +135,64 @@ describe('promptModuleConfig (interactive standalone)', () => {
 
       // No entry with undefined fields is pushed
       expect(config.modals).toEqual([]);
+    } finally {
+      Reflect.deleteProperty(process.stdin, 'isTTY');
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('drops an unmatched feature flag reference when the user declines to keep it', async () => {
+    const mockedPrompts = vi.mocked(prompts);
+    mockedPrompts
+      .mockResolvedValueOnce({ moduleType: 'both' })
+      .mockResolvedValueOnce({ name: 'gated-ext' })
+      .mockResolvedValueOnce({ name: 'some-slot' })
+      .mockResolvedValueOnce({ name: 'GatedExt' })
+      .mockResolvedValueOnce({ name: 'orphan-flag' })
+      .mockResolvedValueOnce({ addMore: false })
+      .mockResolvedValueOnce({ create: false })
+      .mockResolvedValueOnce({ create: false })
+      .mockResolvedValueOnce({ create: false })
+      // The flag is not defined locally, so the CLI asks whether it is a
+      // deliberate reference to another module's flag; declining drops it
+      .mockResolvedValueOnce({ keep: false })
+      .mockResolvedValueOnce({ dependencies: '' })
+      .mockResolvedValueOnce({ offline: false });
+
+    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
+    vi.stubEnv('CI', 'false');
+
+    try {
+      const config = await promptModuleConfig(projectConfig, {});
+      expect(config.extensions?.[0].featureFlag).toBeUndefined();
+    } finally {
+      Reflect.deleteProperty(process.stdin, 'isTTY');
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('keeps an unmatched feature flag reference when confirmed as external', async () => {
+    const mockedPrompts = vi.mocked(prompts);
+    mockedPrompts
+      .mockResolvedValueOnce({ moduleType: 'both' })
+      .mockResolvedValueOnce({ name: 'gated-ext' })
+      .mockResolvedValueOnce({ name: 'some-slot' })
+      .mockResolvedValueOnce({ name: 'GatedExt' })
+      .mockResolvedValueOnce({ name: 'external-flag' })
+      .mockResolvedValueOnce({ addMore: false })
+      .mockResolvedValueOnce({ create: false })
+      .mockResolvedValueOnce({ create: false })
+      .mockResolvedValueOnce({ create: false })
+      .mockResolvedValueOnce({ keep: true })
+      .mockResolvedValueOnce({ dependencies: '' })
+      .mockResolvedValueOnce({ offline: false });
+
+    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
+    vi.stubEnv('CI', 'false');
+
+    try {
+      const config = await promptModuleConfig(projectConfig, {});
+      expect(config.extensions?.[0].featureFlag).toBe('external-flag');
     } finally {
       Reflect.deleteProperty(process.stdin, 'isTTY');
       vi.unstubAllEnvs();

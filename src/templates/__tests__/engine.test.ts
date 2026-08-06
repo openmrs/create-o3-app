@@ -49,7 +49,6 @@ describe('Template Engine', () => {
     isNewMonorepo: false,
     packageLocation: undefined,
     git: true,
-    ci: true,
   };
 
   const mockModuleConfig: ModuleConfig = {
@@ -65,7 +64,6 @@ describe('Template Engine', () => {
 
   const mockOptions: CreateOptions = {
     git: true,
-    ci: true,
     dryRun: false,
     verbose: false,
     quiet: false,
