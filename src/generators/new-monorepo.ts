@@ -4,6 +4,8 @@ import chalk from 'chalk';
 import ora from 'ora';
 import type { ProjectConfig, ModuleConfig, CreateOptions } from '../types/index.js';
 import { generateFiles } from '../templates/engine.js';
+import { assertTargetDirWritable } from '../utils/target-dir.js';
+import { initializeGit } from '../utils/git.js';
 import { logger } from '../utils/logger.js';
 import { handleFileSystemError } from '../utils/error-handler.js';
 
@@ -63,12 +65,24 @@ export async function generateNewMonorepo(
     }
 
     spinner.text = '[2/3] Generating module from template...';
+    // The root files above tolerate an existing monorepo root, but the
+    // package directory itself must not be silently overwritten
+    if (!options.dryRun) {
+      assertTargetDirWritable(join(rootDir, packageLocation), options.force);
+    }
     const fileCount = await generateFiles(projectConfig, moduleConfig, options, rootDir);
     spinner.text = `[2/3] Generated ${fileCount} files from template`;
 
     if (options.dryRun) {
       spinner.succeed(chalk.yellow('Dry run completed - no files were created'));
       return;
+    }
+
+    // Initialize git at the monorepo root; the generated package ships husky
+    // hooks whose postinstall fails without a repository
+    if (projectConfig.git) {
+      spinner.text = '[3/3] Initializing git repository...';
+      await initializeGit(rootDir);
     }
 
     spinner.succeed(chalk.green('New monorepo generated successfully!'));

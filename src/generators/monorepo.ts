@@ -6,6 +6,8 @@ import type { ProjectConfig, ModuleConfig, CreateOptions } from '../types/index.
 import { generateFiles } from '../templates/engine.js';
 import { updateWorkspaceConfig } from '../utils/workspace.js';
 import { logger } from '../utils/logger.js';
+import { assertTargetDirWritable } from '../utils/target-dir.js';
+import { PackageManagerError } from '../utils/errors.js';
 
 export async function generateMonorepoModule(
   projectConfig: ProjectConfig,
@@ -22,6 +24,7 @@ export async function generateMonorepoModule(
   try {
     // Create module directory (skip in dry run)
     if (!options.dryRun) {
+      assertTargetDirWritable(outputDir, options.force);
       if (!existsSync(outputDir)) {
         mkdirSync(outputDir, { recursive: true });
       }
@@ -46,7 +49,11 @@ export async function generateMonorepoModule(
 
     spinner.succeed(chalk.green('Monorepo module generated successfully!'));
   } catch (error) {
-    spinner.fail(chalk.red('Failed to generate monorepo module'));
+    if (error instanceof PackageManagerError) {
+      spinner.fail(chalk.yellow('Module files generated, but dependency installation failed'));
+    } else {
+      spinner.fail(chalk.red('Failed to generate monorepo module'));
+    }
     throw error;
   }
 }

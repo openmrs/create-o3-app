@@ -12,6 +12,7 @@ export interface CreateOptions {
   dryRun?: boolean;
   verbose?: boolean;
   quiet?: boolean;
+  force?: boolean;
 }
 
 export interface ProjectConfig {

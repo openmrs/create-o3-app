@@ -2,6 +2,7 @@ import { execa } from 'execa';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { logger } from './logger.js';
+import { PackageManagerError } from './errors.js';
 
 function getPackageManagerSpec(cwd: string): string | undefined {
   try {
@@ -116,13 +117,24 @@ export async function installDependencies(
 
     logger.success(`Dependencies installed with ${pm}`);
   } catch (error) {
-    logger.warn(`Failed to install dependencies with ${pm}`);
     if (error instanceof Error && error.message.includes('ENOENT')) {
-      logger.info(`${pm} is not installed. Please install it and run '${pm} install' manually.`);
-    } else {
-      logger.info('You can install dependencies manually later.');
-      logger.debug('Package manager error', error);
+      // The package manager is missing entirely; skip gracefully like the
+      // corepack-unavailable path above
+      logger.warn(`${pm} is not installed. Skipping dependency installation.`);
+      logger.info(`Please install it and run '${pm} install' in the project directory.`);
+      return;
     }
-    // Don't throw - dependency installation is optional
+    logger.debug('Package manager error', error);
+    // An attempted install that failed must fail the command; swallowing it
+    // used to print two success messages after a failed install
+    throw new PackageManagerError(
+      `Dependency installation with ${pm} failed`,
+      pm,
+      `${pm} install`,
+      [
+        'The generated files are intact',
+        `Run '${pm} install' in the project directory to finish setup`,
+      ]
+    );
   }
 }

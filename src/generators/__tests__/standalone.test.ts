@@ -4,6 +4,7 @@ import { join } from 'path';
 vi.mock('fs', () => ({
   existsSync: vi.fn().mockReturnValue(false),
   mkdirSync: vi.fn(),
+  readdirSync: vi.fn().mockReturnValue([]),
 }));
 
 vi.mock('../../templates/engine.js', () => ({
@@ -72,5 +73,78 @@ describe('generateStandaloneModule', () => {
     );
 
     expect(installDependencies).toHaveBeenCalledWith(expectedOutputDir, options);
+  });
+
+  it('refuses to scaffold into a non-empty target directory', async () => {
+    const { existsSync, readdirSync } = await import('fs');
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readdirSync).mockReturnValue(['package.json'] as never);
+
+    const projectConfig = {
+      projectName: 'billing',
+      packageName: '@openmrs/esm-billing',
+      description: 'billing frontend module for O3',
+      buildTool: 'rspack',
+      isMonorepo: false,
+      isNewMonorepo: false,
+      git: false,
+      ci: false,
+    };
+
+    await expect(
+      generateStandaloneModule(projectConfig, { type: 'page', routes: [] }, { dryRun: false })
+    ).rejects.toThrow(/already exists and is not empty/);
+
+    expect(generateFiles).not.toHaveBeenCalled();
+  });
+
+  it('overwrites a non-empty target directory when --force is passed', async () => {
+    const { existsSync, readdirSync } = await import('fs');
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readdirSync).mockReturnValue(['package.json'] as never);
+
+    const projectConfig = {
+      projectName: 'billing',
+      packageName: '@openmrs/esm-billing',
+      description: 'billing frontend module for O3',
+      buildTool: 'rspack',
+      isMonorepo: false,
+      isNewMonorepo: false,
+      git: false,
+      ci: false,
+    };
+
+    await expect(
+      generateStandaloneModule(
+        projectConfig,
+        { type: 'page', routes: [] },
+        { dryRun: false, force: true }
+      )
+    ).resolves.toBeUndefined();
+
+    expect(generateFiles).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows an existing but empty target directory', async () => {
+    const { existsSync, readdirSync } = await import('fs');
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readdirSync).mockReturnValue([] as never);
+
+    const projectConfig = {
+      projectName: 'billing',
+      packageName: '@openmrs/esm-billing',
+      description: 'billing frontend module for O3',
+      buildTool: 'rspack',
+      isMonorepo: false,
+      isNewMonorepo: false,
+      git: false,
+      ci: false,
+    };
+
+    await expect(
+      generateStandaloneModule(projectConfig, { type: 'page', routes: [] }, { dryRun: false })
+    ).resolves.toBeUndefined();
+
+    expect(generateFiles).toHaveBeenCalledTimes(1);
   });
 });
