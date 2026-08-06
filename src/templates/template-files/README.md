@@ -57,6 +57,12 @@ See the [Routing Guide](https://o3-docs.openmrs.org/docs/frontend-modules/routin
 Learn about the [Extension System](https://o3-docs.openmrs.org/docs/extension-system).
 {{/if}}
 
+{{#if workspaces}}
+### Adjusting the workspace scope
+
+Your workspaces are registered to a workspace group scoped to `{{workspaceScopePattern}}` (the module's first route). If you add routes that should also launch these workspaces, or launch them from extensions on other pages, widen the group's `scopePattern` in `src/routes.json`.
+{{/if}}
+
 ### Development commands
 
 ```bash
