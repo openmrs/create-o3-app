@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "license": "MPL-2.0",
   "description": "{{description}}",
+  "generator": "{{generator}}",
   "browser": "dist/openmrs-esm-{{kebabCase projectName}}.js",
   "main": "src/index.ts",
   "source": true,

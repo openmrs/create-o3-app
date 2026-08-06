@@ -179,3 +179,7 @@ module.exports = config.default ?? config;
 ### Yarn peer dependency warnings (dayjs, i18next, single-spa, swr, react-is, sass)
 
 If you see missing peer dependency warnings, add the missing deps and align `react-i18next` to `11.x` in your `package.json`, then re-run `yarn install`.
+
+---
+
+This module was scaffolded with [`@openmrs/create-o3-app`](https://github.com/openmrs/create-o3-app). The `generator` field in `package.json` records the CLI version that produced it and is safe to remove.
