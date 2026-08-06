@@ -161,7 +161,6 @@ export const projectConfigSchema = z.object({
   isNewMonorepo: z.boolean(),
   packageLocation: packageLocationSchema.optional(),
   git: z.boolean(),
-  ci: z.boolean(),
 });
 
 /**
@@ -218,7 +217,7 @@ export const featureFlagConfigSchema = z.object({
  * Complete module configuration validation schema
  */
 export const moduleConfigSchema = z.object({
-  type: z.enum(['page', 'extension', 'both', 'modal']),
+  type: z.enum(['page', 'extension', 'both']),
   routes: z.array(routeConfigSchema).optional(),
   extensions: z.array(extensionConfigSchema).optional(),
   modals: z.array(modalConfigSchema).optional(),
@@ -241,7 +240,6 @@ export const createOptionsSchema = z.object({
   route: routePathSchema.optional(),
   routeComponent: componentNameSchema.optional(),
   git: z.boolean().optional(),
-  ci: z.boolean().optional(),
   dryRun: z.boolean().optional(),
   verbose: z.boolean().optional(),
   quiet: z.boolean().optional(),

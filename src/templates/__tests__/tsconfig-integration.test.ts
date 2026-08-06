@@ -33,7 +33,6 @@ describe('tsconfig.json.hbs Integration', () => {
     isMonorepo: false,
     isNewMonorepo: false,
     git: true,
-    ci: true,
   };
 
   const mockModuleConfig: ModuleConfig = {
@@ -49,7 +48,6 @@ describe('tsconfig.json.hbs Integration', () => {
 
   const mockOptions: CreateOptions = {
     git: true,
-    ci: true,
     dryRun: false,
     verbose: false,
     quiet: false,

@@ -15,7 +15,6 @@ const projectConfig: ProjectConfig = {
   isMonorepo: false,
   isNewMonorepo: false,
   git: true,
-  ci: true,
 };
 
 describe('promptModuleConfig (non-interactive)', () => {

@@ -141,7 +141,6 @@ export async function promptProjectConfig(
   const git = options.git !== false;
 
   // CI
-  const ci = options.ci !== false;
 
   return {
     projectName,
@@ -152,6 +151,5 @@ export async function promptProjectConfig(
     isNewMonorepo,
     packageLocation,
     git,
-    ci,
   };
 }

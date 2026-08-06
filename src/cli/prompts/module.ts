@@ -34,7 +34,7 @@ export async function promptModuleConfig(
   // Determine module type from options
   // If route/component provided, assume 'page'
   // Otherwise prompt (unless non-interactive, in which case default to 'page')
-  let moduleType: 'page' | 'extension' | 'both' | 'modal' = 'page';
+  let moduleType: 'page' | 'extension' | 'both' = 'page';
 
   if (options.route || componentName) {
     moduleType = 'page';
@@ -178,11 +178,27 @@ export async function promptModuleConfig(
         validate: componentNameValidator('extension'),
       });
       if (cancelled(component.name)) break;
+      const featureFlag = await prompts({
+        type: 'text',
+        name: 'name',
+        message: 'Feature flag to gate this extension (leave empty for none):',
+        initial: '',
+        validate: (value: string) => {
+          if (!value) return true;
+          const validation = validateFeatureFlagName(value);
+          if (!validation.success) {
+            return validation.errors[0] || 'Invalid feature flag name';
+          }
+          return true;
+        },
+      });
+      if (cancelled(featureFlag.name)) break;
       config.extensions.push({
         name: extension.name,
         slot: slot.name,
         componentName: component.name,
         online: true,
+        featureFlag: featureFlag.name || undefined,
       });
       usedNames.add(extension.name);
       fileClaims.claim('extension', component.name);
@@ -436,7 +452,7 @@ export async function promptModuleConfig(
       await prompts({
         type: 'confirm',
         name: 'offline',
-        message: 'Add offline support?',
+        message: 'Mark pages and extensions as available offline in routes.json?',
         initial: false,
       })
     ).offline;

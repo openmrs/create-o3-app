@@ -48,7 +48,6 @@ describe('generateStandaloneModule', () => {
       isMonorepo: false,
       isNewMonorepo: false,
       git: false,
-      ci: false,
     };
     const moduleConfig = {
       type: 'page',
@@ -88,7 +87,6 @@ describe('generateStandaloneModule', () => {
       isMonorepo: false,
       isNewMonorepo: false,
       git: false,
-      ci: false,
     };
 
     await expect(
@@ -111,7 +109,6 @@ describe('generateStandaloneModule', () => {
       isMonorepo: false,
       isNewMonorepo: false,
       git: false,
-      ci: false,
     };
 
     await expect(
@@ -138,7 +135,6 @@ describe('generateStandaloneModule', () => {
       isMonorepo: false,
       isNewMonorepo: false,
       git: false,
-      ci: false,
     };
 
     await expect(

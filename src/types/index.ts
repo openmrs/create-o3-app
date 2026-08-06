@@ -8,7 +8,6 @@ export interface CreateOptions {
   route?: string;
   routeComponent?: string;
   git?: boolean;
-  ci?: boolean;
   dryRun?: boolean;
   verbose?: boolean;
   quiet?: boolean;
@@ -24,11 +23,10 @@ export interface ProjectConfig {
   isNewMonorepo: boolean;
   packageLocation?: string;
   git: boolean;
-  ci: boolean;
 }
 
 export interface ModuleConfig {
-  type: 'page' | 'extension' | 'both' | 'modal';
+  type: 'page' | 'extension' | 'both';
   routes?: RouteConfig[];
   extensions?: ExtensionConfig[];
   modals?: ModalConfig[];

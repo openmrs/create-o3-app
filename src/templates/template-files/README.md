@@ -178,7 +178,7 @@ module.exports = config.default ?? config;
 
 ### Yarn peer dependency warnings (dayjs, i18next, single-spa, swr, react-is, sass)
 
-If you see missing peer dependency warnings, add the missing deps and align `react-i18next` to `11.x` in your `package.json`, then re-run `yarn install`.
+If you see missing peer dependency warnings, add the missing packages to your `devDependencies` at the versions the warnings name, then re-run `yarn install`.
 
 ---
 

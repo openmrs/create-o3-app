@@ -34,14 +34,19 @@ program
   .option('--package-name <name>', 'NPM package name (overrides default package name)')
   .option('--rspack', 'Deprecated; rspack is now the default build tool')
   .option('--webpack', 'Use webpack instead of rspack as build tool')
-  .option('--standalone', 'Create standalone module (not in monorepo)')
-  .option('--monorepo', 'Create module in existing monorepo (detects monorepo automatically)')
-  .option('--new-monorepo', 'Create new monorepo root with this module as first package')
+  .option(
+    '--standalone',
+    'Create standalone module (not in monorepo); uses non-interactive defaults'
+  )
+  .option('--monorepo', 'Create module in existing monorepo; uses non-interactive defaults')
+  .option(
+    '--new-monorepo',
+    'Create new monorepo root with this module as first package; uses non-interactive defaults'
+  )
   .option('--route <route>', 'Route path for page-based modules (e.g., "/patients")')
   .option('--route-component <name>', 'Component name for the route (use with --route)')
   .option('--no-git', 'Skip git initialization')
   .option('--force', 'Overwrite files in a non-empty target directory')
-  .option('--no-ci', 'Skip CI workflow generation')
   .option('--dry-run', 'Preview changes without executing')
   .option('--verbose', 'Verbose output')
   .option('--quiet', 'Suppress output')
