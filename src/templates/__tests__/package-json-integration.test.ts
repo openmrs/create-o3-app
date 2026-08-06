@@ -66,6 +66,7 @@ describe('package.json template integration', () => {
     const standalone = await renderPackageJson(baseProjectConfig);
     expect(standalone.scripts.postinstall).toBe('husky install');
     expect(standalone.devDependencies.husky).toBeDefined();
+    expect(standalone.devDependencies['lint-staged']).toBeDefined();
     expect(standalone['lint-staged']).toBeDefined();
 
     // A package inside a monorepo must not ship git hooks: its postinstall
@@ -77,6 +78,7 @@ describe('package.json template integration', () => {
     });
     expect(monorepoPackage.scripts.postinstall).toBeUndefined();
     expect(monorepoPackage.devDependencies.husky).toBeUndefined();
+    expect(monorepoPackage.devDependencies['lint-staged']).toBeUndefined();
     expect(monorepoPackage['lint-staged']).toBeUndefined();
   });
 
