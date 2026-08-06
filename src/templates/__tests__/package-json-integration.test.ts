@@ -62,6 +62,26 @@ describe('package.json template integration', () => {
     expect(packageJson.generator).toMatch(/^@openmrs\/create-o3-app@\d+\.\d+\.\d+$/);
   });
 
+  it('keeps husky hooks for standalone modules but omits them from monorepo packages', async () => {
+    const standalone = await renderPackageJson(baseProjectConfig);
+    expect(standalone.scripts.postinstall).toBe('husky install');
+    expect(standalone.devDependencies.husky).toBeDefined();
+    expect(standalone.devDependencies['lint-staged']).toBeDefined();
+    expect(standalone['lint-staged']).toBeDefined();
+
+    // A package inside a monorepo must not ship git hooks: its postinstall
+    // cannot use the root .git, and the root owns hook configuration
+    const monorepoPackage = await renderPackageJson({
+      ...baseProjectConfig,
+      isMonorepo: true,
+      packageLocation: 'packages/apps/esm-test-module',
+    });
+    expect(monorepoPackage.scripts.postinstall).toBeUndefined();
+    expect(monorepoPackage.devDependencies.husky).toBeUndefined();
+    expect(monorepoPackage.devDependencies['lint-staged']).toBeUndefined();
+    expect(monorepoPackage['lint-staged']).toBeUndefined();
+  });
+
   it('generates installable rspack dependencies for standalone modules', async () => {
     const packageJson = await renderPackageJson(baseProjectConfig);
 

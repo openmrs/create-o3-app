@@ -4,6 +4,8 @@ import chalk from 'chalk';
 import ora from 'ora';
 import type { ProjectConfig, ModuleConfig, CreateOptions } from '../types/index.js';
 import { generateFiles } from '../templates/engine.js';
+import { assertTargetDirWritable } from '../utils/target-dir.js';
+import { initializeGit } from '../utils/git.js';
 import { logger } from '../utils/logger.js';
 import { handleFileSystemError } from '../utils/error-handler.js';
 
@@ -19,6 +21,9 @@ export async function generateNewMonorepo(
 
   try {
     if (!options.dryRun) {
+      // Refuse before writing anything: the root files below are only safe to
+      // create once we know the package directory will not be overwritten
+      assertTargetDirWritable(join(rootDir, packageLocation), options.force);
       if (!existsSync(rootDir)) {
         try {
           mkdirSync(rootDir, { recursive: true });
@@ -69,6 +74,12 @@ export async function generateNewMonorepo(
     if (options.dryRun) {
       spinner.succeed(chalk.yellow('Dry run completed - no files were created'));
       return;
+    }
+
+    // Initialize git at the monorepo root, like standalone projects do
+    if (projectConfig.git) {
+      spinner.text = '[3/3] Initializing git repository...';
+      await initializeGit(rootDir);
     }
 
     spinner.succeed(chalk.green('New monorepo generated successfully!'));

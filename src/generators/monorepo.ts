@@ -6,6 +6,7 @@ import type { ProjectConfig, ModuleConfig, CreateOptions } from '../types/index.
 import { generateFiles } from '../templates/engine.js';
 import { updateWorkspaceConfig } from '../utils/workspace.js';
 import { logger } from '../utils/logger.js';
+import { assertTargetDirWritable } from '../utils/target-dir.js';
 
 export async function generateMonorepoModule(
   projectConfig: ProjectConfig,
@@ -22,6 +23,7 @@ export async function generateMonorepoModule(
   try {
     // Create module directory (skip in dry run)
     if (!options.dryRun) {
+      assertTargetDirWritable(outputDir, options.force);
       if (!existsSync(outputDir)) {
         mkdirSync(outputDir, { recursive: true });
       }

@@ -214,6 +214,12 @@ function shouldExcludeFile(filePath: string, projectConfig: ProjectConfig): bool
     'pnpm-lock.yaml',
   ];
 
+  // Git hooks belong to the repository root; a package inside a monorepo must
+  // not ship .husky (its postinstall cannot use the root .git anyway)
+  if (projectConfig.isMonorepo && relativePath.includes('.husky')) {
+    return true;
+  }
+
   // Exclude the build tool config file that doesn't match the selected buildTool
   if (projectConfig.buildTool === 'rspack' && relativePath.includes('webpack.config.js')) {
     return true;

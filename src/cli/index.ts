@@ -40,6 +40,7 @@ program
   .option('--route <route>', 'Route path for page-based modules (e.g., "/patients")')
   .option('--route-component <name>', 'Component name for the route (use with --route)')
   .option('--no-git', 'Skip git initialization')
+  .option('--force', 'Overwrite files in a non-empty target directory')
   .option('--no-ci', 'Skip CI workflow generation')
   .option('--dry-run', 'Preview changes without executing')
   .option('--verbose', 'Verbose output')

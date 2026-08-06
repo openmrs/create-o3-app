@@ -245,4 +245,5 @@ export const createOptionsSchema = z.object({
   dryRun: z.boolean().optional(),
   verbose: z.boolean().optional(),
   quiet: z.boolean().optional(),
+  force: z.boolean().optional(),
 });
