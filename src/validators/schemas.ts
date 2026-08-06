@@ -117,14 +117,6 @@ export const backendDependencySchema = z.object({
 });
 
 /**
- * Path alias validation schema
- */
-export const pathAliasSchema = z
-  .string()
-  .min(1, 'Path alias is required')
-  .regex(/^[a-z0-9-]+$/, 'Path alias can only contain lowercase letters, numbers, and hyphens');
-
-/**
  * Workspace name validation schema
  */
 export const workspaceNameSchema = z
@@ -234,8 +226,6 @@ export const moduleConfigSchema = z.object({
   featureFlags: z.array(featureFlagConfigSchema).optional(),
   backendDependencies: z.array(backendDependencySchema).optional(),
   offline: z.boolean().optional(),
-  pathAliases: z.array(pathAliasSchema).optional(),
-  coverageThresholds: z.boolean().optional(),
 });
 
 /**

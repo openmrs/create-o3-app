@@ -431,8 +431,6 @@ export async function promptModuleConfig(
   if (isNonInteractive) {
     // Use sensible defaults when non-interactive
     config.offline = false;
-    config.pathAliases = undefined;
-    config.coverageThresholds = true;
   } else {
     config.offline = (
       await prompts({
@@ -442,26 +440,6 @@ export async function promptModuleConfig(
         initial: false,
       })
     ).offline;
-
-    config.pathAliases = (
-      await prompts({
-        type: 'confirm',
-        name: 'pathAliases',
-        message: 'Set up path aliases for hooks/resources/utils?',
-        initial: false,
-      })
-    ).pathAliases
-      ? ['hooks', 'resources', 'utils']
-      : undefined;
-
-    config.coverageThresholds = (
-      await prompts({
-        type: 'confirm',
-        name: 'coverage',
-        message: 'Set up test coverage thresholds?',
-        initial: true,
-      })
-    ).coverage;
   }
 
   // Apply the offline support answer to the generated routes and extensions

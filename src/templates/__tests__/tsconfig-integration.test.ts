@@ -99,12 +99,14 @@ describe('tsconfig.json.hbs Integration', () => {
       expect(parsed.compilerOptions.noEmit).toBe(true);
       expect(parsed.compilerOptions.baseUrl).toBe('.');
 
-      // Verify path aliases (default configuration)
-      expect(parsed.compilerOptions.paths).toBeDefined();
-      expect(parsed.compilerOptions.paths['@hooks/*']).toEqual(['./src/hooks/*']);
-      expect(parsed.compilerOptions.paths['@resources/*']).toEqual(['./src/resources/*']);
-      expect(parsed.compilerOptions.paths['@utils/*']).toEqual(['./src/utils/*']);
-      expect(parsed.compilerOptions.paths['@openmrs/*']).toBeUndefined();
+      // Paths follow the ecosystem convention (patient-chart): __mocks__ and
+      // tools only. Source aliases like @hooks were removed because the build
+      // config does not resolve them; the generated README documents how to
+      // set them up across all three configs.
+      expect(parsed.compilerOptions.paths).toEqual({
+        __mocks__: ['./__mocks__'],
+        tools: ['./tools'],
+      });
 
       // Verify lib array
       expect(parsed.compilerOptions.lib).toContain('dom');
@@ -122,53 +124,4 @@ describe('tsconfig.json.hbs Integration', () => {
     }
   });
 
-  it('should generate tsconfig.json with custom path aliases when provided', async () => {
-    const customModuleConfig: ModuleConfig = {
-      ...mockModuleConfig,
-      pathAliases: ['components', 'services', 'types'],
-    };
-
-    const realTemplatePath = join(
-      process.cwd(),
-      'src',
-      'templates',
-      'template-files',
-      'tsconfig.json.hbs'
-    );
-    const testTemplatePath = join(process.cwd(), 'test-tsconfig-custom-templates');
-
-    mkdirSync(testTemplatePath, { recursive: true });
-    copyFileSync(realTemplatePath, join(testTemplatePath, 'tsconfig.json.hbs'));
-
-    const { getTemplateInfo } = await import('../loader.js');
-    vi.mocked(getTemplateInfo).mockResolvedValue({
-      version: 'latest',
-      path: testTemplatePath,
-    });
-
-    try {
-      await generateFiles(mockProjectConfig, customModuleConfig, mockOptions, testOutputDir);
-
-      const outputPath = join(testOutputDir, 'test-tsconfig-module', 'tsconfig.json');
-      const content = readFileSync(outputPath, 'utf-8');
-      const parsed = JSON.parse(content);
-
-      // console.log('Generated tsconfig content:', JSON.stringify(parsed, null, 2));
-
-      // Verify custom path aliases are used
-      expect(parsed.compilerOptions.paths['@components/*']).toEqual(['./src/components/*']);
-      expect(parsed.compilerOptions.paths['@services/*']).toEqual(['./src/services/*']);
-      expect(parsed.compilerOptions.paths['@types/*']).toEqual(['./src/types/*']);
-
-      // Verify default aliases are NOT present
-      expect(parsed.compilerOptions.paths['@hooks/*']).toBeUndefined();
-      expect(parsed.compilerOptions.paths['@resources/*']).toBeUndefined();
-      expect(parsed.compilerOptions.paths['@utils/*']).toBeUndefined();
-      expect(parsed.compilerOptions.paths['@openmrs/*']).toBeUndefined();
-    } finally {
-      if (existsSync(testTemplatePath)) {
-        rmSync(testTemplatePath, { recursive: true });
-      }
-    }
-  });
 });

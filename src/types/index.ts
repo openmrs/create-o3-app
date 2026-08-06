@@ -35,8 +35,6 @@ export interface ModuleConfig {
   featureFlags?: FeatureFlagConfig[];
   backendDependencies?: BackendDependency[];
   offline?: boolean;
-  pathAliases?: string[];
-  coverageThresholds?: boolean;
 }
 
 export interface RouteConfig {

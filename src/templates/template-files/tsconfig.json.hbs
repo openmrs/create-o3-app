@@ -25,17 +25,7 @@
     "baseUrl": ".",
     "paths": {
       "__mocks__": ["./__mocks__"],
-{{#if pathAliases}}
-{{#each pathAliases}}
-      "@{{this}}/*": ["./src/{{this}}/*"]{{#unless @last}},{{/unless}}
-{{/each}}
-{{else}}
-      "@hooks/*": ["./src/hooks/*"],
-      "@resources/*": ["./src/resources/*"],
-      "@utils/*": ["./src/utils/*"]
-{{/if}},
-      "@tools/*": ["./tools/*"],
-      "@constants": ["./src/constants"]
+      "tools": ["./tools"]
     }
   },
   "include": ["src/**/*", "tools/setup-tests.ts", "vitest.config.ts"],
