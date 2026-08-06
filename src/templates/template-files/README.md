@@ -160,20 +160,10 @@ yarn test
 
 ### `openmrs develop` crashes with `Cannot read properties of undefined (reading 'devServer')`
 
-Ensure your build config exports the default OpenMRS config:
+Ensure your build config re-exports the default OpenMRS config, for example:
 
-For rspack (default):
 ```js
-const config = require('@openmrs/rspack-config');
-
-module.exports = config.default ?? config;
-```
-
-For webpack:
-```js
-const config = require('@openmrs/webpack-config');
-
-module.exports = config.default ?? config;
+module.exports = require('openmrs/default-{{buildTool}}-config');
 ```
 
 ### Yarn peer dependency warnings (dayjs, i18next, single-spa, swr, react-is, sass)
