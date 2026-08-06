@@ -21,6 +21,9 @@ export async function generateNewMonorepo(
 
   try {
     if (!options.dryRun) {
+      // Refuse before writing anything: the root files below are only safe to
+      // create once we know the package directory will not be overwritten
+      assertTargetDirWritable(join(rootDir, packageLocation), options.force);
       if (!existsSync(rootDir)) {
         try {
           mkdirSync(rootDir, { recursive: true });
@@ -65,11 +68,6 @@ export async function generateNewMonorepo(
     }
 
     spinner.text = '[2/3] Generating module from template...';
-    // The root files above tolerate an existing monorepo root, but the
-    // package directory itself must not be silently overwritten
-    if (!options.dryRun) {
-      assertTargetDirWritable(join(rootDir, packageLocation), options.force);
-    }
     const fileCount = await generateFiles(projectConfig, moduleConfig, options, rootDir);
     spinner.text = `[2/3] Generated ${fileCount} files from template`;
 
@@ -78,8 +76,7 @@ export async function generateNewMonorepo(
       return;
     }
 
-    // Initialize git at the monorepo root; the generated package ships husky
-    // hooks whose postinstall fails without a repository
+    // Initialize git at the monorepo root, like standalone projects do
     if (projectConfig.git) {
       spinner.text = '[3/3] Initializing git repository...';
       await initializeGit(rootDir);

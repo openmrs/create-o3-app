@@ -64,6 +64,7 @@ export async function installDependencies(
   // But still check for existing lock files in case adding to existing project
   const pm = detectPackageManager(projectPath);
   const packageManagerSpec = getPackageManagerSpec(projectPath);
+  let installCommand = `${pm} install`;
 
   try {
     if (pm === 'yarn' && packageManagerSpec?.startsWith('yarn@')) {
@@ -84,6 +85,7 @@ export async function installDependencies(
       }
 
       logger.info(`Installing dependencies with Corepack (${packageManagerSpec})...`);
+      installCommand = 'corepack yarn install';
       await execa('corepack', ['yarn', 'install'], { cwd: projectPath, stdio: 'inherit' });
       logger.success('Dependencies installed with Yarn via Corepack');
       return;
@@ -127,14 +129,9 @@ export async function installDependencies(
     logger.debug('Package manager error', error);
     // An attempted install that failed must fail the command; swallowing it
     // used to print two success messages after a failed install
-    throw new PackageManagerError(
-      `Dependency installation with ${pm} failed`,
-      pm,
-      `${pm} install`,
-      [
-        'The generated files are intact',
-        `Run '${pm} install' in the project directory to finish setup`,
-      ]
-    );
+    throw new PackageManagerError(`Dependency installation with ${pm} failed`, pm, installCommand, [
+      'The generated files are intact',
+      `Run '${installCommand}' in the project directory to finish setup`,
+    ]);
   }
 }

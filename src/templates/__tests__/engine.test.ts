@@ -233,6 +233,24 @@ This is a test README for {{packageName}}.`;
     });
   });
 
+  describe('monorepo exclusions', () => {
+    it('omits the .husky directory from monorepo packages', async () => {
+      mkdirSync(join(testTemplatesDir, '.husky'), { recursive: true });
+      writeFileSync(join(testTemplatesDir, '.husky', 'pre-commit'), 'npx lint-staged\n');
+
+      await generateFiles(
+        { ...mockProjectConfig, isMonorepo: true, packageLocation: 'packages/test-module' },
+        mockModuleConfig,
+        mockOptions,
+        testOutputDir
+      );
+      expect(existsSync(join(testOutputDir, 'packages/test-module', '.husky'))).toBe(false);
+
+      await generateFiles(mockProjectConfig, mockModuleConfig, mockOptions, testOutputDir);
+      expect(existsSync(join(testOutputDir, 'test-module', '.husky', 'pre-commit'))).toBe(true);
+    });
+  });
+
   describe('dry run mode', () => {
     it('should not create files in dry run mode', async () => {
       const templateContent = `{"test": "{{projectName}}"}`;
