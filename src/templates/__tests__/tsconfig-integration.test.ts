@@ -113,9 +113,10 @@ describe('tsconfig.json.hbs Integration', () => {
       expect(parsed.compilerOptions.lib).toContain('es2015');
       expect(parsed.compilerOptions.lib).toContain('es2020');
 
-      // Verify include and types
+      // Verify include; the old root-level `types` key was inert (tsc only
+      // reads types inside compilerOptions) and is gone
       expect(parsed.include).toEqual(['src/**/*', 'tools/setup-tests.ts', 'vitest.config.ts']);
-      expect(parsed.types).toEqual(['lodash', 'react', 'react-dom', 'vitest/globals']);
+      expect(parsed.types).toBeUndefined();
     } finally {
       // Clean up test templates
       if (existsSync(testTemplatePath)) {
