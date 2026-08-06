@@ -91,4 +91,26 @@ describe('OutputFileClaims', () => {
       /Modal component "DeleteThingModal" and Page component "DeleteThing"/
     );
   });
+
+  it('rejects one component name reused across exporting kinds', () => {
+    // The files differ (delete-thing-modal.component.tsx vs delete-thing.modal.tsx),
+    // but both kinds emit `export const deleteThingModal` in index.ts
+    const claims = new OutputFileClaims();
+    expect(claims.claim('extension', 'DeleteThingModal')).toBeNull();
+    expect(claims.claim('modal', 'DeleteThingModal')).toMatch(
+      /Modal component "DeleteThingModal" and Extension component "DeleteThingModal" would both export `deleteThingModal` from src\/index\.ts/
+    );
+    // The failed claim recorded nothing: the same modal still fails on the export,
+    // not as "configured more than once"
+    expect(claims.claim('modal', 'DeleteThingModal')).toMatch(/would both export/);
+  });
+
+  it('does not export-claim pages', () => {
+    const claims = new OutputFileClaims();
+    expect(claims.claim('page', 'DeleteThingModal')).toBeNull();
+    // The page derives delete-thing-modal.component.tsx and the modal derives
+    // delete-thing.modal.tsx, and pages have no lifecycle export, so this
+    // combination is legal even though the component names match
+    expect(claims.claim('modal', 'DeleteThingModal')).toBeNull();
+  });
 });
