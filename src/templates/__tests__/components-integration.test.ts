@@ -207,6 +207,21 @@ describe('Modal and workspace component generation', () => {
     ).rejects.toThrow(/would both generate src\/root\.scss/);
   });
 
+  it('rejects one component name reused across kinds that export from index.ts', async () => {
+    const colliding: ModuleConfig = {
+      type: 'both',
+      routes: [{ path: '/test', componentName: 'TestComponent' }],
+      extensions: [
+        { name: 'delete-thing', slot: 'test-slot', componentName: 'DeleteThingModal' },
+      ],
+      modals: [{ name: 'delete-thing-modal', componentName: 'DeleteThingModal' }],
+    };
+
+    await expect(
+      generateFiles(mockProjectConfig, colliding, mockOptions, testOutputDir)
+    ).rejects.toThrow(/would both export `deleteThingModal` from src\/index\.ts/);
+  });
+
   it('rejects the same component reused across entries', async () => {
     // Reuse is not safe: repeated routes emit duplicate imports in
     // root.component.tsx and repeated modals emit duplicate index.ts exports

@@ -1,6 +1,7 @@
 import prompts from 'prompts';
 import chalk from 'chalk';
 import type { ProjectConfig, ModuleConfig, CreateOptions } from '../../types/index.js';
+import { OutputFileClaims, type ComponentKind } from '../../templates/naming.js';
 import {
   validateComponentName,
   validateExtensionName,
@@ -9,6 +10,11 @@ import {
   validateBackendDependency,
   validateWorkspaceName,
 } from '../../validators/index.js';
+
+/** A prompts response is missing its answer when the user cancelled (Ctrl-C). */
+function cancelled(answer: unknown): boolean {
+  return answer === undefined;
+}
 
 export async function promptModuleConfig(
   projectConfig: ProjectConfig,
@@ -53,6 +59,23 @@ export async function promptModuleConfig(
 
   const config: ModuleConfig = {
     type: moduleType,
+  };
+
+  // Tracks generated output files so a later prompt answer cannot silently
+  // overwrite an earlier component's files; the engine re-checks at
+  // generation time as a backstop
+  const fileClaims = new OutputFileClaims();
+  const componentNameValidator = (kind: ComponentKind) => (value: string) => {
+    if (!value) return 'Component name is required';
+    const validation = validateComponentName(value);
+    if (!validation.success) {
+      return validation.errors[0] || 'Invalid component name';
+    }
+    const collision = fileClaims.check(kind, value);
+    if (collision) {
+      return collision;
+    }
+    return true;
   };
 
   // Routes (if page or both)
@@ -105,11 +128,16 @@ export async function promptModuleConfig(
         // But for now, we'll skip to avoid hanging
       }
     }
+
+    // Seed the claims so later prompts validate against the route components
+    // (collisions here, e.g. a component named Root, are caught by the engine)
+    config.routes.forEach((route) => fileClaims.claim('page', route.componentName));
   }
 
   // Extensions (if extension or both)
   if (config.type === 'extension' || config.type === 'both') {
     config.extensions = [];
+    const usedNames = new Set<string>();
     let addMore = true;
     while (addMore) {
       const extension = await prompts({
@@ -122,9 +150,13 @@ export async function promptModuleConfig(
           if (!validation.success) {
             return validation.errors[0] || 'Invalid extension name';
           }
+          if (usedNames.has(value)) {
+            return `An extension named "${value}" is already defined`;
+          }
           return true;
         },
       });
+      if (cancelled(extension.name)) break;
       const slot = await prompts({
         type: 'text',
         name: 'name',
@@ -138,25 +170,22 @@ export async function promptModuleConfig(
           return true;
         },
       });
+      if (cancelled(slot.name)) break;
       const component = await prompts({
         type: 'text',
         name: 'name',
         message: 'Component name:',
-        validate: (value: string) => {
-          if (!value) return 'Component name is required';
-          const validation = validateComponentName(value);
-          if (!validation.success) {
-            return validation.errors[0] || 'Invalid component name';
-          }
-          return true;
-        },
+        validate: componentNameValidator('extension'),
       });
+      if (cancelled(component.name)) break;
       config.extensions.push({
         name: extension.name,
         slot: slot.name,
         componentName: component.name,
         online: true,
       });
+      usedNames.add(extension.name);
+      fileClaims.claim('extension', component.name);
       const more = await prompts({
         type: 'confirm',
         name: 'addMore',
@@ -177,6 +206,7 @@ export async function promptModuleConfig(
     });
     if (modalsResponse.create) {
       config.modals = [];
+      const usedNames = new Set<string>();
       let addMore = true;
       while (addMore) {
         const modal = await prompts({
@@ -189,26 +219,26 @@ export async function promptModuleConfig(
             if (!validation.success) {
               return validation.errors[0] || 'Invalid modal name';
             }
-            return true;
-          },
-        });
-        const component = await prompts({
-          type: 'text',
-          name: 'name',
-          message: 'Component name:',
-          validate: (value: string) => {
-            if (!value) return 'Component name is required';
-            const validation = validateComponentName(value);
-            if (!validation.success) {
-              return validation.errors[0] || 'Invalid component name';
+            if (usedNames.has(value)) {
+              return `A modal named "${value}" is already defined`;
             }
             return true;
           },
         });
+        if (cancelled(modal.name)) break;
+        const component = await prompts({
+          type: 'text',
+          name: 'name',
+          message: 'Component name:',
+          validate: componentNameValidator('modal'),
+        });
+        if (cancelled(component.name)) break;
         config.modals.push({
           name: modal.name,
           componentName: component.name,
         });
+        usedNames.add(modal.name);
+        fileClaims.claim('modal', component.name);
         const more = await prompts({
           type: 'confirm',
           name: 'addMore',
@@ -232,6 +262,7 @@ export async function promptModuleConfig(
     });
     if (workspacesResponse.create) {
       config.workspaces = [];
+      const usedNames = new Set<string>();
       let addMore = true;
       while (addMore) {
         const workspace = await prompts({
@@ -244,28 +275,27 @@ export async function promptModuleConfig(
             if (!validation.success) {
               return validation.errors[0] || 'Invalid workspace name';
             }
+            if (usedNames.has(value)) {
+              return `A workspace named "${value}" is already defined`;
+            }
             return true;
           },
         });
+        if (cancelled(workspace.name)) break;
         const title = await prompts({
           type: 'text',
           name: 'title',
           message: 'Workspace title:',
           validate: (value: string) => (value ? true : 'Workspace title is required'),
         });
+        if (cancelled(title.title)) break;
         const component = await prompts({
           type: 'text',
           name: 'name',
           message: 'Component name:',
-          validate: (value: string) => {
-            if (!value) return 'Component name is required';
-            const validation = validateComponentName(value);
-            if (!validation.success) {
-              return validation.errors[0] || 'Invalid component name';
-            }
-            return true;
-          },
+          validate: componentNameValidator('workspace'),
         });
+        if (cancelled(component.name)) break;
         const workspaceType = await prompts({
           type: 'text',
           name: 'type',
@@ -273,12 +303,15 @@ export async function promptModuleConfig(
           initial: 'form',
           validate: (value: string) => (value.trim() ? true : 'Workspace type is required'),
         });
+        if (cancelled(workspaceType.type)) break;
         config.workspaces.push({
           name: workspace.name,
           title: title.title,
           componentName: component.name,
           type: workspaceType.type.trim(),
         });
+        usedNames.add(workspace.name);
+        fileClaims.claim('workspace', component.name);
         const more = await prompts({
           type: 'confirm',
           name: 'addMore',
@@ -302,6 +335,7 @@ export async function promptModuleConfig(
     });
     if (featureFlagsResponse.create) {
       config.featureFlags = [];
+      const usedNames = new Set<string>();
       let addMore = true;
       while (addMore) {
         const flag = await prompts({
@@ -314,26 +348,33 @@ export async function promptModuleConfig(
             if (!validation.success) {
               return validation.errors[0] || 'Invalid feature flag name';
             }
+            if (usedNames.has(value)) {
+              return `A feature flag named "${value}" is already defined`;
+            }
             return true;
           },
         });
+        if (cancelled(flag.name)) break;
         const label = await prompts({
           type: 'text',
           name: 'label',
           message: 'Feature flag label:',
           validate: (value: string) => (value ? true : 'Feature flag label is required'),
         });
+        if (cancelled(label.label)) break;
         const description = await prompts({
           type: 'text',
           name: 'description',
           message: 'Feature flag description:',
           validate: (value: string) => (value ? true : 'Feature flag description is required'),
         });
+        if (cancelled(description.description)) break;
         config.featureFlags.push({
           name: flag.name,
           label: label.label,
           description: description.description,
         });
+        usedNames.add(flag.name);
         const more = await prompts({
           type: 'confirm',
           name: 'addMore',
