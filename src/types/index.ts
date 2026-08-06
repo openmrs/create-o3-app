@@ -62,7 +62,6 @@ export interface WorkspaceConfig {
   name: string;
   title: string;
   componentName: string;
-  type: string;
 }
 
 export interface FeatureFlagConfig {

@@ -201,7 +201,6 @@ export const workspaceConfigSchema = z.object({
   name: workspaceNameSchema,
   title: z.string().min(1, 'Workspace title is required'),
   componentName: componentNameSchema,
-  type: z.string().trim().min(1, 'Workspace type is required'),
 });
 
 /**
