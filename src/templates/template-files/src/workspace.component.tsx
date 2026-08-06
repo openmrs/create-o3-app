@@ -11,7 +11,7 @@ const {{pascalCase currentWorkspace.componentName}}: React.FC<DefaultWorkspacePr
     <div className={styles.container}>
       <div className={styles.content}>
         <p className={styles.description}>
-          {t('{{kebabCase currentWorkspace.componentName}}Description', 'This is the {{currentWorkspace.name}} workspace.')}
+          {t('{{camelCase currentWorkspace.componentName}}Description', 'This is the {{currentWorkspace.name}} workspace.')}
         </p>
       </div>
       <ButtonSet className={styles.buttonSet}>

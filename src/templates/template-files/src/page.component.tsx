@@ -11,10 +11,10 @@ const {{pascalCase currentRoute.componentName}}: React.FC = () => {
       <Layer>
         <Tile className={styles.tile}>
           <h1 className={styles.heading}>
-            {t('{{kebabCase currentRoute.componentName}}Heading', '{{currentRoute.componentName}}')}
+            {t('{{camelCase currentRoute.componentName}}Heading', '{{currentRoute.componentName}}')}
           </h1>
           <p className={styles.content}>
-            {t('{{kebabCase currentRoute.componentName}}Description', 'Welcome to the {{currentRoute.componentName}} page.')}
+            {t('{{camelCase currentRoute.componentName}}Description', 'Welcome to the {{currentRoute.componentName}} page.')}
           </p>
         </Tile>
       </Layer>
