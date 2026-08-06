@@ -81,13 +81,17 @@ describe('package.json template integration', () => {
     expect(monorepoPackage['lint-staged']).toBeUndefined();
   });
 
-  it('generates installable rspack dependencies for standalone modules', async () => {
+  it('relies on the openmrs package for the build toolchain, like template-app', async () => {
     const packageJson = await renderPackageJson(baseProjectConfig);
 
     expect(packageJson.devDependencies['@openmrs/esm-framework']).toBe('next');
-    expect(packageJson.devDependencies['@openmrs/rspack-config']).toBe('next');
-    expect(packageJson.devDependencies['@rspack/cli']).toBe('^1.7.10');
-    expect(packageJson.devDependencies['@rspack/core']).toBe('^1.7.10');
+    expect(packageJson.devDependencies.openmrs).toBe('next');
+    // The openmrs package provides the configs and binaries; installing them
+    // directly duplicated the toolchain and drifted from its pinned versions
+    expect(packageJson.devDependencies['@openmrs/rspack-config']).toBeUndefined();
+    expect(packageJson.devDependencies['@rspack/cli']).toBeUndefined();
+    expect(packageJson.devDependencies['@rspack/core']).toBeUndefined();
+    expect(packageJson.devDependencies.webpack).toBeUndefined();
     expect(Object.values(packageJson.devDependencies)).not.toContain('workspace:*');
   });
 
@@ -100,7 +104,6 @@ describe('package.json template integration', () => {
     });
 
     expect(packageJson.devDependencies['@openmrs/esm-framework']).toBe('next');
-    expect(packageJson.devDependencies['@openmrs/rspack-config']).toBe('next');
     expect(Object.values(packageJson.devDependencies)).not.toContain('workspace:*');
   });
 
