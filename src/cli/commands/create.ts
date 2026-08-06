@@ -28,16 +28,6 @@ export async function createCommand(
       logger.warn('The --rspack flag is deprecated; rspack is now the default build tool.');
     }
 
-    // The route flags only work as a pair; a lone flag used to be silently
-    // ignored in favor of the default route
-    if (Boolean(options.route) !== Boolean(options.routeComponent)) {
-      handleValidationError('options', 'Invalid options provided', [
-        options.route
-          ? '--route requires --route-component (e.g. --route "/patients" --route-component "PatientList")'
-          : '--route-component requires --route (e.g. --route "/patients" --route-component "PatientList")',
-      ]);
-    }
-
     // Validate project name if provided
     if (projectName) {
       const nameValidation = validateProjectName(projectName);
