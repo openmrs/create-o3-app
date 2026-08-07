@@ -1,7 +1,12 @@
 import prompts from 'prompts';
 import chalk from 'chalk';
 import type { ProjectConfig, ModuleConfig, CreateOptions } from '../../types/index.js';
-import { OutputFileClaims, type ComponentKind } from '../../templates/naming.js';
+import {
+  deriveDefaultComponentName,
+  OutputFileClaims,
+  reservedComponentNameError,
+  type ComponentKind,
+} from '../../templates/naming.js';
 import {
   validateComponentName,
   validateExtensionName,
@@ -71,6 +76,10 @@ export async function promptModuleConfig(
     if (!validation.success) {
       return validation.errors[0] || 'Invalid component name';
     }
+    const reserved = reservedComponentNameError(value);
+    if (reserved) {
+      return reserved;
+    }
     const collision = fileClaims.check(kind, value);
     if (collision) {
       return collision;
@@ -102,10 +111,7 @@ export async function promptModuleConfig(
     } else {
       // Always create a default route when no route flags provided (avoids hanging prompts)
       const defaultRoute = `/${projectConfig.projectName}`;
-      const defaultComponent = projectConfig.projectName
-        .split('-')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join('');
+      const defaultComponent = deriveDefaultComponentName(projectConfig.projectName);
 
       config.routes.push({
         path: defaultRoute,
