@@ -79,6 +79,10 @@ describe('package.json template integration', () => {
     expect(monorepoPackage.devDependencies.husky).toBeUndefined();
     expect(monorepoPackage.devDependencies['lint-staged']).toBeUndefined();
     expect(monorepoPackage['lint-staged']).toBeUndefined();
+    // The root owns the package manager, so a child install cannot disagree
+    // with a root install about the Yarn version or the linker
+    expect(monorepoPackage.packageManager).toBeUndefined();
+    expect(standalone.packageManager).toBe('yarn@4.10.3');
   });
 
   it('relies on the openmrs package for the build toolchain, like template-app', async () => {

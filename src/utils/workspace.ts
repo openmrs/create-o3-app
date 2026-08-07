@@ -1,43 +1,68 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import chalk from 'chalk';
+import { isScalar, isSeq, parseDocument } from 'yaml';
 
+/**
+ * Add a package location to pnpm-workspace.yaml. The file is parsed and
+ * serialized as YAML rather than edited line by line: a valid inline
+ * declaration like `packages: ["packages/*"]` is not a `packages:` line, so
+ * appending to it produced a second `packages` key and a file that no longer
+ * parses (YAML map keys must be unique). parseDocument preserves the user's
+ * comments and formatting.
+ */
 function updatePnpmWorkspace(pnpmWorkspacePath: string, packageLocation: string): void {
   const normalizedLocation = packageLocation.replace(/\/$/, '');
-  let content = '';
-  if (existsSync(pnpmWorkspacePath)) {
-    content = readFileSync(pnpmWorkspacePath, 'utf-8');
+  const content = existsSync(pnpmWorkspacePath) ? readFileSync(pnpmWorkspacePath, 'utf-8') : '';
+  const doc = parseDocument(content);
+
+  if (doc.errors.length > 0) {
+    // Never rewrite a file we could not read: that would compound the problem
+    throw new Error(`${pnpmWorkspacePath} is not valid YAML: ${doc.errors[0].message}`);
   }
 
-  const lines = content.split(/\r?\n/);
-  const packagesIndex = lines.findIndex((line) => line.trim() === 'packages:');
+  const packages = doc.get('packages');
 
-  if (packagesIndex === -1) {
-    lines.push('packages:', `  - "${normalizedLocation}"`);
+  if (!isSeq(packages)) {
+    if (packages !== undefined && packages !== null) {
+      throw new Error(`${pnpmWorkspacePath} has a "packages" key that is not a list`);
+    }
+    doc.set('packages', doc.createNode([normalizedLocation]));
   } else {
-    let endIndex = packagesIndex + 1;
-    const existing: string[] = [];
-    while (endIndex < lines.length) {
-      const line = lines[endIndex];
-      if (line.trim() === '') {
-        endIndex++;
-        continue;
-      }
-      if (!line.trim().startsWith('-')) {
-        break;
-      }
-      const match = line.match(/-\s*["']?(.+?)["']?\s*$/);
-      if (match) {
-        existing.push(match[1]);
-      }
-      endIndex++;
+    const existing = packages.items.map((item) =>
+      isScalar(item) ? String(item.value) : undefined
+    );
+    if (existing.includes(normalizedLocation)) {
+      return;
     }
-    if (!existing.includes(normalizedLocation)) {
-      lines.splice(endIndex, 0, `  - "${normalizedLocation}"`);
-    }
+    packages.add(doc.createNode(normalizedLocation));
   }
 
-  writeFileSync(pnpmWorkspacePath, lines.join('\n'), 'utf-8');
+  writeFileSync(pnpmWorkspacePath, doc.toString(), 'utf-8');
+}
+
+/**
+ * Returns an error message if the directory does not declare a workspace the
+ * generated package could join. `--monorepo` used to report success against an
+ * ordinary project: the package was generated, no root configuration changed,
+ * and nothing included it in a workspace.
+ */
+export function monorepoRootError(monorepoRoot: string): string | null {
+  if (existsSync(join(monorepoRoot, 'pnpm-workspace.yaml'))) {
+    return null;
+  }
+  const packageJsonPath = join(monorepoRoot, 'package.json');
+  if (existsSync(packageJsonPath)) {
+    try {
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+      if (packageJson.workspaces) {
+        return null;
+      }
+    } catch {
+      return `Could not read ${packageJsonPath}`;
+    }
+  }
+  return `No workspace declaration found in ${monorepoRoot}. A monorepo root needs a "workspaces" field in package.json or a pnpm-workspace.yaml file.`;
 }
 
 /**
