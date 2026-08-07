@@ -161,6 +161,35 @@ describe('promptModuleConfig (interactive standalone)', () => {
     }
   });
 
+  it('keeps an unmatched feature flag reference when confirmation is cancelled', async () => {
+    const mockedPrompts = vi.mocked(prompts);
+    mockedPrompts
+      .mockResolvedValueOnce({ moduleType: 'both' })
+      .mockResolvedValueOnce({ name: 'gated-ext' })
+      .mockResolvedValueOnce({ name: 'some-slot' })
+      .mockResolvedValueOnce({ name: 'GatedExt' })
+      .mockResolvedValueOnce({ name: 'external-flag' })
+      .mockResolvedValueOnce({ addMore: false })
+      .mockResolvedValueOnce({ create: false })
+      .mockResolvedValueOnce({ create: false })
+      .mockResolvedValueOnce({ create: false })
+      // Cancelling resolves without a `keep` answer and must not be treated as No
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ dependencies: '' })
+      .mockResolvedValueOnce({ offline: false });
+
+    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
+    vi.stubEnv('CI', 'false');
+
+    try {
+      const config = await promptModuleConfig(projectConfig, {});
+      expect(config.extensions?.[0].featureFlag).toBe('external-flag');
+    } finally {
+      Reflect.deleteProperty(process.stdin, 'isTTY');
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('keeps an unmatched feature flag reference when confirmed as external', async () => {
     const mockedPrompts = vi.mocked(prompts);
     mockedPrompts

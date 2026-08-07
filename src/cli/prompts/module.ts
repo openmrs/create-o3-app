@@ -409,7 +409,7 @@ export async function promptModuleConfig(
           message: `"${extension.featureFlag}" (gating extension "${extension.name}") is not defined in this module. Keep it as a reference to a flag registered by another module?`,
           initial: false,
         });
-        if (!response.keep) {
+        if (response.keep === false) {
           delete extension.featureFlag;
         }
       }
