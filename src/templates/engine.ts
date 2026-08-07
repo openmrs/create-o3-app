@@ -14,7 +14,12 @@ import type {
 } from '../types/index.js';
 import { getTemplateInfo } from './loader.js';
 import { ValidationError } from '../utils/errors.js';
-import { componentFileBaseName, OutputFileClaims, type ComponentKind } from './naming.js';
+import {
+  componentFileBaseName,
+  OutputFileClaims,
+  reservedComponentNameError,
+  type ComponentKind,
+} from './naming.js';
 
 export interface TemplateContext extends ProjectConfig {
   module: ModuleConfig;
@@ -137,6 +142,12 @@ const generatorLabel = getGeneratorLabel();
 function assertNoOutputCollisions(moduleConfig: ModuleConfig): void {
   const claims = new OutputFileClaims();
   const claimOrThrow = (kind: ComponentKind, name: string) => {
+    // Names that collide with identifiers the templates import would generate
+    // a module that cannot compile
+    const reserved = reservedComponentNameError(name);
+    if (reserved) {
+      throw new ValidationError(reserved, 'componentName');
+    }
     const error = claims.claim(kind, name);
     if (error) {
       throw new ValidationError(error, 'componentName');

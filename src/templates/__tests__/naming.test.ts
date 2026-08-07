@@ -1,10 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import {
   componentFileBaseName,
+  deriveDefaultComponentName,
+  reservedComponentNameError,
   derivedOutputFiles,
   OutputFileClaims,
   toKebabCase,
 } from '../naming.js';
+import { validateComponentName } from '../../validators/index.js';
 
 describe('toKebabCase', () => {
   it('kebab-cases PascalCase component names', () => {
@@ -112,5 +115,66 @@ describe('OutputFileClaims', () => {
     // delete-thing.modal.tsx, and pages have no lifecycle export, so this
     // combination is legal even though the component names match
     expect(claims.claim('modal', 'DeleteThingModal')).toBeNull();
+  });
+});
+
+describe('reservedComponentNameError', () => {
+  it('rejects identifiers the component templates import', () => {
+    for (const name of ['React', 'Layer', 'Tile', 'Button', 'ModalHeader', 'Route', 'Root']) {
+      expect(reservedComponentNameError(name)).toMatch(/already imported/);
+    }
+  });
+
+  it('rejects names whose lifecycle export index.ts already declares', () => {
+    expect(reservedComponentNameError('Options')).toMatch(/would export `options`/);
+    expect(reservedComponentNameError('ModuleName')).toMatch(/would export `moduleName`/);
+    expect(reservedComponentNameError('ConfigSchema')).toMatch(/would export `configSchema`/);
+  });
+
+  it('accepts ordinary component names', () => {
+    for (const name of ['PatientSummary', 'DeleteThingModal', 'ThingFormWorkspace', 'Buttons']) {
+      expect(reservedComponentNameError(name)).toBeNull();
+    }
+  });
+});
+
+describe('deriveDefaultComponentName', () => {
+  it('derives PascalCase from the project name', () => {
+    expect(deriveDefaultComponentName('patient-summary')).toBe('PatientSummary');
+    expect(deriveDefaultComponentName('billing')).toBe('Billing');
+  });
+
+  it('drops leading digits, since a component name must be an identifier', () => {
+    expect(deriveDefaultComponentName('123-app')).toBe('App');
+    expect(deriveDefaultComponentName('2fa-setup')).toBe('FaSetup');
+  });
+
+  it('falls back when the project name has no letters', () => {
+    expect(deriveDefaultComponentName('123')).toBe('App');
+  });
+
+  it('suffixes names that would collide with imported identifiers', () => {
+    expect(deriveDefaultComponentName('react')).toBe('ReactPage');
+    expect(deriveDefaultComponentName('route')).toBe('RoutePage');
+  });
+
+  it('never derives a name the CLI would reject', () => {
+    for (const project of [
+      'react',
+      'route',
+      'root',
+      'button',
+      'options',
+      '123-app',
+      '123',
+      '2fa-setup',
+      'a',
+      'my-1st-app',
+    ]) {
+      const derived = deriveDefaultComponentName(project);
+      // Must be a valid PascalCase identifier and not collide with imports
+      expect(validateComponentName(derived).success).toBe(true);
+      expect(reservedComponentNameError(derived)).toBeNull();
+    }
   });
 });
