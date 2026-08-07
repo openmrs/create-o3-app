@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import type { ProjectConfig, ModuleConfig, CreateOptions } from '../types/index.js';
 import { generateFiles } from '../templates/engine.js';
-import { initializeGit } from '../utils/git.js';
+import { createInitialCommit, initializeGit } from '../utils/git.js';
 import { installDependencies } from '../utils/package-manager.js';
 import { logger } from '../utils/logger.js';
 import { handleFileSystemError } from '../utils/error-handler.js';
@@ -79,6 +79,12 @@ export async function generateStandaloneModule(
       await installDependencies(outputDir, options);
     } else {
       logger.info('[DRY RUN] Would install dependencies');
+    }
+
+    // Commit after installing, so the lockfile and any install-time changes to
+    // package.json are part of the initial commit rather than pending changes
+    if (projectConfig.git && !options.dryRun) {
+      await createInitialCommit(outputDir);
     }
 
     spinner.succeed(chalk.green('Standalone module generated successfully!'));

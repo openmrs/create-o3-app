@@ -5,7 +5,7 @@ import ora from 'ora';
 import type { ProjectConfig, ModuleConfig, CreateOptions } from '../types/index.js';
 import { generateFiles } from '../templates/engine.js';
 import { assertTargetDirWritable } from '../utils/target-dir.js';
-import { initializeGit } from '../utils/git.js';
+import { createInitialCommit, initializeGit } from '../utils/git.js';
 import { logger } from '../utils/logger.js';
 import { handleFileSystemError } from '../utils/error-handler.js';
 
@@ -90,6 +90,7 @@ export async function generateNewMonorepo(
     if (projectConfig.git) {
       spinner.text = '[3/3] Initializing git repository...';
       await initializeGit(rootDir);
+      await createInitialCommit(rootDir);
     }
 
     spinner.succeed(chalk.green('New monorepo generated successfully!'));

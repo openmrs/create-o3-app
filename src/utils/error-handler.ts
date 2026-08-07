@@ -16,7 +16,9 @@ import {
  * Handle and display errors gracefully
  */
 export function handleError(error: unknown, verbose = false): void {
-  const message = createErrorMessage(error);
+  // CLIError messages are logged bare here: formatError would append the
+  // suggestions that this function prints itself, listing each one twice
+  const message = isCLIError(error) ? error.message : createErrorMessage(error);
 
   // Log error based on type
   if (isCLIError(error)) {
