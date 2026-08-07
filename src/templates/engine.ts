@@ -232,9 +232,14 @@ function shouldExcludeFile(filePath: string, projectConfig: ProjectConfig): bool
     'pnpm-lock.yaml',
   ];
 
-  // Git hooks belong to the repository root; a package inside a monorepo must
-  // not ship .husky (its postinstall cannot use the root .git anyway)
+  // Git hooks and Yarn configuration belong to the repository root. A package
+  // inside a monorepo must not ship .husky (its postinstall cannot use the
+  // root .git) nor .yarnrc.yml, which would fight the root's own linker and
+  // Yarn version settings.
   if (projectConfig.isMonorepo && relativePath.includes('.husky')) {
+    return true;
+  }
+  if (projectConfig.isMonorepo && relativePath.includes('.yarnrc.yml')) {
     return true;
   }
 

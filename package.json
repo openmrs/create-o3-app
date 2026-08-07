@@ -63,6 +63,7 @@
     "ora": "^7.0.1",
     "prompts": "^2.4.2",
     "simple-git": "^3.20.1",
+    "yaml": "^2.8.3",
     "zod": "^3.22.4"
   },
   "devDependencies": {
