@@ -21,9 +21,10 @@ export async function generateNewMonorepo(
 
   try {
     if (!options.dryRun) {
-      // Refuse before writing anything: the root files below are only safe to
-      // create once we know the package directory will not be overwritten
-      assertTargetDirWritable(join(rootDir, packageLocation), options.force);
+      // Refuse before writing anything. Guarding only the package directory
+      // left an unrelated non-empty root being given a manifest, a README, a
+      // .gitignore, and a package directory.
+      assertTargetDirWritable(rootDir, options.force);
       if (!existsSync(rootDir)) {
         try {
           mkdirSync(rootDir, { recursive: true });
@@ -42,12 +43,21 @@ export async function generateNewMonorepo(
           name: projectConfig.projectName,
           private: true,
           workspaces: [packageLocation],
+          packageManager: 'yarn@4.10.3',
         };
         writeFileSync(
           rootPackageJsonPath,
           JSON.stringify(rootPackageJson, null, 2) + '\n',
           'utf-8'
         );
+      }
+
+      // The root owns the package manager and Yarn configuration, so a child
+      // install cannot disagree with a root install about the linker or the
+      // Yarn version
+      const rootYarnrcPath = join(rootDir, '.yarnrc.yml');
+      if (!existsSync(rootYarnrcPath)) {
+        writeFileSync(rootYarnrcPath, 'nodeLinker: node-modules\n', 'utf-8');
       }
 
       const rootReadmePath = join(rootDir, 'README.md');
