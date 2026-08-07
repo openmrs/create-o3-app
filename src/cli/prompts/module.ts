@@ -313,19 +313,10 @@ export async function promptModuleConfig(
           validate: componentNameValidator('workspace'),
         });
         if (cancelled(component.name)) break;
-        const workspaceType = await prompts({
-          type: 'text',
-          name: 'type',
-          message: 'Workspace type:',
-          initial: 'form',
-          validate: (value: string) => (value.trim() ? true : 'Workspace type is required'),
-        });
-        if (cancelled(workspaceType.type)) break;
         config.workspaces.push({
           name: workspace.name,
           title: title.title,
           componentName: component.name,
-          type: workspaceType.type.trim(),
         });
         usedNames.add(workspace.name);
         fileClaims.claim('workspace', component.name);

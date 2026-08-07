@@ -24,6 +24,8 @@ export interface TemplateContext extends ProjectConfig {
   /** Modals and workspaces enriched with the derived output file basename */
   modals?: Array<ModalConfig & { fileBaseName: string }>;
   workspaces?: Array<WorkspaceConfig & { fileBaseName: string }>;
+  /** Scope pattern for the generated workspace group (the module's first route) */
+  workspaceScopePattern: string;
   // Helper fields
   kebabCase: (str: string) => string;
   camelCase: (str: string) => string;
@@ -177,6 +179,11 @@ function buildContext(
     module: moduleConfig,
     options,
     generator: generatorLabel,
+    workspaceScopePattern: (() => {
+      const firstRoute = moduleConfig.routes?.[0]?.path ?? '/';
+      const path = firstRoute.startsWith('/') ? firstRoute : `/${firstRoute}`;
+      return `^${path}`;
+    })(),
     kebabCase: (str: string) =>
       str
         .replace(/([a-z])([A-Z])/g, '$1-$2')

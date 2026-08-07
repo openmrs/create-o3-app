@@ -155,16 +155,8 @@ describe('Validation Schemas', () => {
       componentName: 'PatientSearchWorkspace',
     };
 
-    it('should accept custom workspace types', () => {
-      expect(() => workspaceConfigSchema.parse({ ...workspace, type: 'order' })).not.toThrow();
-      expect(() =>
-        workspaceConfigSchema.parse({ ...workspace, type: 'patient-search-workspace' })
-      ).not.toThrow();
-    });
-
-    it('should reject empty workspace types', () => {
-      expect(() => workspaceConfigSchema.parse({ ...workspace, type: '' })).toThrow();
-      expect(() => workspaceConfigSchema.parse({ ...workspace, type: '   ' })).toThrow();
+    it('should accept a workspace without a type (Workspace2 has no type field)', () => {
+      expect(() => workspaceConfigSchema.parse(workspace)).not.toThrow();
     });
   });
 });

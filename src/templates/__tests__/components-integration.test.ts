@@ -80,7 +80,6 @@ describe('Modal and workspace component generation', () => {
         name: 'thing-form-workspace',
         title: 'Thing form',
         componentName: 'ThingFormWorkspace',
-        type: 'form',
       },
     ],
   };
@@ -115,7 +114,8 @@ describe('Modal and workspace component generation', () => {
 
     const content = readFileSync(componentPath, 'utf-8');
     expect(content).toContain('const ThingFormWorkspace');
-    expect(content).toContain('DefaultWorkspaceProps');
+    expect(content).toContain('Workspace2DefinitionProps');
+    expect(content).toContain('<Workspace2 title=');
     expect(content).toContain('closeWorkspace');
   });
 
@@ -171,7 +171,6 @@ describe('Modal and workspace component generation', () => {
           name: 'delete-thing-workspace',
           title: 'Delete thing',
           componentName: 'DeleteThingWorkspace',
-          type: 'form',
         },
       ],
     };

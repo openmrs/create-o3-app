@@ -39,13 +39,24 @@
     }{{#unless @last}},{{/unless}}
 {{/each}}
   ]{{/if}}{{#if workspaces}},
-  "workspaces": [
+  "workspaceGroups2": [
+    {
+      "name": "{{kebabCase projectName}}-workspace-group",
+      "scopePattern": "{{workspaceScopePattern}}"
+    }
+  ],
+  "workspaceWindows2": [
+    {
+      "name": "{{kebabCase projectName}}-workspace-window",
+      "group": "{{kebabCase projectName}}-workspace-group"
+    }
+  ],
+  "workspaces2": [
 {{#each workspaces}}
     {
       "name": "{{this.name}}",
-      "title": {{{json this.title}}},
       "component": "{{camelCase this.componentName}}",
-      "type": {{{json this.type}}}
+      "window": "{{kebabCase ../projectName}}-workspace-window"
     }{{#unless @last}},{{/unless}}
 {{/each}}
   ]{{/if}}{{#if featureFlags}},

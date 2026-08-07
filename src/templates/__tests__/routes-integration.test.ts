@@ -287,7 +287,6 @@ describe('routes.json Integration', () => {
           name: 'thing-form-workspace',
           title: 'Thing form: R&D "review"',
           componentName: 'ThingFormWorkspace',
-          type: 'custom "quoted" \\ type',
         },
       ],
       featureFlags: [
@@ -329,12 +328,20 @@ describe('routes.json Integration', () => {
       const parsed = JSON.parse(readFileSync(outputPath, 'utf-8'));
 
       expect(parsed.modals).toEqual([{ name: 'delete-thing-modal', component: 'deleteThingModal' }]);
-      expect(parsed.workspaces).toEqual([
+      // Workspace2 registration: group scoped to the module's first route,
+      // one window, and the workspace attached to it. Title lives in the
+      // component now, not in routes.json.
+      expect(parsed.workspaceGroups2).toEqual([
+        { name: 'test-routes-module-workspace-group', scopePattern: '^/test' },
+      ]);
+      expect(parsed.workspaceWindows2).toEqual([
+        { name: 'test-routes-module-workspace-window', group: 'test-routes-module-workspace-group' },
+      ]);
+      expect(parsed.workspaces2).toEqual([
         {
           name: 'thing-form-workspace',
-          title: 'Thing form: R&D "review"',
           component: 'thingFormWorkspace',
-          type: 'custom "quoted" \\ type',
+          window: 'test-routes-module-workspace-window',
         },
       ]);
       // The routes schema requires flagName, not name
