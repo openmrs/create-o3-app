@@ -186,11 +186,10 @@ describe('Modal and workspace component generation', () => {
       routes: [{ path: '/test', componentName: 'Root' }],
     };
 
+    // `Root` is caught earlier, as an identifier root.component.tsx declares
     await expect(
       generateFiles(mockProjectConfig, rootPage, mockOptions, testOutputDir)
-    ).rejects.toThrow(
-      /Page component "Root" and the app root component would both generate src\/root\.component\.tsx/
-    );
+    ).rejects.toThrow(/"Root" is already imported by the generated components/);
 
     // A modal stripping to the basename `root` collides on the stylesheet
     const rootModal: ModuleConfig = {
@@ -217,6 +216,33 @@ describe('Modal and workspace component generation', () => {
     await expect(
       generateFiles(mockProjectConfig, colliding, mockOptions, testOutputDir)
     ).rejects.toThrow(/would both export `deleteThingModal` from src\/index\.ts/);
+  });
+
+  it('rejects component names that collide with imported identifiers', async () => {
+    // A page named React renders `const React: React.FC` beside
+    // `import React from 'react'`, which does not compile
+    await expect(
+      generateFiles(
+        mockProjectConfig,
+        { type: 'page', routes: [{ path: '/test', componentName: 'React' }] },
+        mockOptions,
+        testOutputDir
+      )
+    ).rejects.toThrow(/"React" is already imported by the generated components/);
+
+    // A modal named Options exports `options`, which index.ts already declares
+    await expect(
+      generateFiles(
+        mockProjectConfig,
+        {
+          type: 'page',
+          routes: [{ path: '/test', componentName: 'TestComponent' }],
+          modals: [{ name: 'options-modal', componentName: 'Options' }],
+        },
+        mockOptions,
+        testOutputDir
+      )
+    ).rejects.toThrow(/"Options" would export `options` from src\/index\.ts/);
   });
 
   it('rejects the same component reused across entries', async () => {

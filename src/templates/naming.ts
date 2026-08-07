@@ -38,6 +38,83 @@ export function componentFileBaseName(componentName: string, kind: 'Modal' | 'Wo
 }
 
 /**
+ * PascalCase identifiers the generated components already bring into scope. A
+ * component with one of these names produces a duplicate declaration: a page
+ * named `React` renders `const React: React.FC` beside
+ * `import React from 'react'`, which fails to compile.
+ */
+const RESERVED_COMPONENT_NAMES = new Set([
+  // Every component template
+  'React',
+  // page.component.tsx
+  'Layer',
+  'Tile',
+  // extension / modal / workspace templates
+  'Button',
+  'ButtonSet',
+  'ModalBody',
+  'ModalFooter',
+  'ModalHeader',
+  'Workspace2',
+  'Workspace2DefinitionProps',
+  // root.component.tsx, which imports every page component
+  'BrowserRouter',
+  'Routes',
+  'Route',
+  'Root',
+]);
+
+/**
+ * Identifiers src/index.ts declares. A component name whose lifecycle export
+ * (its camelCase form) matches one of these redeclares it.
+ */
+const RESERVED_EXPORT_NAMES = new Set([
+  'getAsyncLifecycle',
+  'defineConfigSchema',
+  'configSchema',
+  'moduleName',
+  'options',
+  'importTranslation',
+  'startupApp',
+  'root',
+]);
+
+/**
+ * Returns an error message if a component name would collide with an
+ * identifier the generated files already declare or import.
+ */
+export function reservedComponentNameError(componentName: string): string | null {
+  if (RESERVED_COMPONENT_NAMES.has(componentName)) {
+    return `"${componentName}" is already imported by the generated components, so the generated module would not compile. Choose a different component name.`;
+  }
+  const exportName = lifecycleExportName(componentName);
+  if (RESERVED_EXPORT_NAMES.has(exportName)) {
+    return `"${componentName}" would export \`${exportName}\` from src/index.ts, which already declares it. Choose a different component name.`;
+  }
+  return null;
+}
+
+/**
+ * Derive the default page component name from the project name. Project names
+ * allow leading digits and words that collide with imported identifiers, so
+ * the derived name is sanitized into a usable identifier: `123-app` becomes
+ * `App` and `react` becomes `ReactPage`.
+ */
+export function deriveDefaultComponentName(projectName: string): string {
+  const pascal = projectName
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+  // A component name must be a PascalCase identifier: drop leading digits, and
+  // recapitalize afterwards, since stripping them can expose a lowercase letter
+  const identifier = pascal.replace(/^[^A-Za-z]+/, '');
+  const base =
+    identifier.length > 0 ? identifier.charAt(0).toUpperCase() + identifier.slice(1) : 'App';
+  return reservedComponentNameError(base) ? `${base}Page` : base;
+}
+
+/**
  * The src/ files a component of the given kind generates.
  */
 export function derivedOutputFiles(kind: ComponentKind, componentName: string): string[] {
