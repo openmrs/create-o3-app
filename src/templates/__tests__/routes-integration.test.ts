@@ -332,7 +332,7 @@ describe('routes.json Integration', () => {
       // one window, and the workspace attached to it. Title lives in the
       // component now, not in routes.json.
       expect(parsed.workspaceGroups2).toEqual([
-        { name: 'test-routes-module-workspace-group', scopePattern: '/test' },
+        { name: 'test-routes-module-workspace-group', scopePattern: '^/test' },
       ]);
       expect(parsed.workspaceWindows2).toEqual([
         { name: 'test-routes-module-workspace-window', group: 'test-routes-module-workspace-group' },

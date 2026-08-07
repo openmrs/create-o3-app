@@ -14,12 +14,7 @@ import type {
 } from '../types/index.js';
 import { getTemplateInfo } from './loader.js';
 import { ValidationError } from '../utils/errors.js';
-import {
-  componentFileBaseName,
-  OutputFileClaims,
-  toKebabCase,
-  type ComponentKind,
-} from './naming.js';
+import { componentFileBaseName, OutputFileClaims, type ComponentKind } from './naming.js';
 
 export interface TemplateContext extends ProjectConfig {
   module: ModuleConfig;
@@ -185,9 +180,9 @@ function buildContext(
     options,
     generator: generatorLabel,
     workspaceScopePattern: (() => {
-      const firstRoute = moduleConfig.routes?.[0]?.path;
-      const pattern = firstRoute ?? `/${toKebabCase(projectConfig.projectName)}`;
-      return pattern.startsWith('/') ? pattern : `/${pattern}`;
+      const firstRoute = moduleConfig.routes?.[0]?.path ?? '/';
+      const path = firstRoute.startsWith('/') ? firstRoute : `/${firstRoute}`;
+      return `^${path}`;
     })(),
     kebabCase: (str: string) =>
       str

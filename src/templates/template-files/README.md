@@ -60,7 +60,7 @@ Learn about the [Extension System](https://o3-docs.openmrs.org/docs/extension-sy
 {{#if workspaces}}
 ### Adjusting the workspace scope
 
-Your workspaces are registered to a workspace group scoped to `{{workspaceScopePattern}}` (the module's first route). If you add routes that should also launch these workspaces, or launch them from extensions on other pages, widen the group's `scopePattern` in `src/routes.json`.
+Your workspaces are registered to a workspace group scoped to the pattern `{{workspaceScopePattern}}` (anchored to the module's first route, or `^/` when there is none). If you add routes that should also launch these workspaces, or launch them from extensions on other pages, adjust the group's `scopePattern` in `src/routes.json`.
 {{/if}}
 
 ### Development commands
