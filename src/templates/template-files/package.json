@@ -63,23 +63,25 @@
     "swr": "2.x"
   },
   "devDependencies": {
-    "openmrs": "next",
-    "@openmrs/esm-framework": "next",
     "@openmrs/eslint-config": "^2.0.0",
+    "@openmrs/esm-framework": "next",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.5.2",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
     "@vitest/coverage-v8": "^4.1.2",
     "dayjs": "^1.11.13",
     "eslint": "^9.39.0",
-{{#unless isMonorepo}}    "husky": "^9.0.11",
-{{/unless}}    "i18next": "^25.0.0",
+{{#unless isMonorepo}}    "husky": "^9.0.11",{{/unless}}
+    "i18next": "^25.0.0",
     "i18next-parser": "^9.0.1",
     "identity-obj-proxy": "^3.0.0",
     "jsdom": "^28.0.0",
-{{#unless isMonorepo}}    "lint-staged": "^15.2.2",
-{{/unless}}    "prettier": "^3.2.5",
+{{#unless isMonorepo}}    "lint-staged": "^15.2.2",{{/unless}}
+    "openmrs": "next",
+    "prettier": "^3.2.5",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-i18next": "^16.0.0",
@@ -90,9 +92,7 @@
     "single-spa": "^6.0.0",
     "swr": "^2.0.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.2",
-    "@types/react": "^18.3.0",
-    "@types/react-dom": "^18.3.0"
+    "vitest": "^4.1.2"
   }{{#unless isMonorepo}},
   "lint-staged": {
     "*.{ts,tsx}": "eslint --cache --fix --max-warnings 0",
