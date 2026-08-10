@@ -55,7 +55,7 @@ program
     `
 Examples:
   $ create-o3-app my-module --standalone
-  $ create-o3-app my-module --monorepo --route "/patients"
+  $ create-o3-app my-module --monorepo --route "/patients" --route-component "PatientList"
   $ create-o3-app my-module --dry-run
   $ create-o3-app my-module --package-name "@openmrs/esm-my-module" --webpack
   $ create-o3-app my-module --new-monorepo --route "/patients" --route-component "PatientList"

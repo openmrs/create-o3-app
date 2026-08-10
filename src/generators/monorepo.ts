@@ -4,9 +4,10 @@ import chalk from 'chalk';
 import ora from 'ora';
 import type { ProjectConfig, ModuleConfig, CreateOptions } from '../types/index.js';
 import { generateFiles } from '../templates/engine.js';
-import { updateWorkspaceConfig } from '../utils/workspace.js';
+import { monorepoRootError, updateWorkspaceConfig } from '../utils/workspace.js';
 import { logger } from '../utils/logger.js';
 import { assertTargetDirWritable } from '../utils/target-dir.js';
+import { ValidationError } from '../utils/errors.js';
 
 export async function generateMonorepoModule(
   projectConfig: ProjectConfig,
@@ -21,6 +22,17 @@ export async function generateMonorepoModule(
   const spinner = ora('[1/3] Generating monorepo module...').start();
 
   try {
+    // Refuse before writing anything if this is not actually a monorepo root:
+    // the package would be generated but never joined to a workspace
+    const rootError = monorepoRootError(process.cwd());
+    if (rootError) {
+      throw new ValidationError(rootError, 'monorepo', [
+        'Run with --new-monorepo to create a monorepo root here',
+        'Run with --standalone to create a standalone module',
+        'Add a "workspaces" field to the root package.json and try again',
+      ]);
+    }
+
     // Create module directory (skip in dry run)
     if (!options.dryRun) {
       assertTargetDirWritable(outputDir, options.force);

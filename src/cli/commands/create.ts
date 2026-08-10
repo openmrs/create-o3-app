@@ -24,6 +24,12 @@ export async function createCommand(
       logger.setQuiet(true);
     }
 
+    if (options.rspack && options.webpack) {
+      handleValidationError('options', 'Invalid options provided', [
+        'Pass either --webpack or --rspack, not both (rspack is the default)',
+      ]);
+    }
+
     if (options.rspack) {
       logger.warn('The --rspack flag is deprecated; rspack is now the default build tool.');
     }
