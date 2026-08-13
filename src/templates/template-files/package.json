@@ -18,6 +18,7 @@
     "coverage": "vitest run --coverage --passWithNoTests",
     "typescript": "tsc",
     "lint": "eslint src",
+    "verify": "yarn lint && yarn typescript && yarn test",
     "extract-translations": "i18next 'src/**/*.component.tsx' 'src/**/*.extension.tsx' 'src/**/*.modal.tsx' 'src/**/*.workspace.tsx' 'src/index.ts' --config ./tools/i18next-parser.config.js",
     "prettier": "prettier --config prettier.config.js --write \"src/**/*.{ts,tsx,css,scss}\""{{#unless isMonorepo}},
     "postinstall": "husky install"{{/unless}}
