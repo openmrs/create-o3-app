@@ -42,7 +42,18 @@ export async function generateNewMonorepo(
         const rootPackageJson = {
           name: projectConfig.projectName,
           private: true,
+          scripts: {
+            start: `yarn workspace ${projectConfig.packageName} start`,
+            build: 'turbo run build --color',
+            lint: 'turbo run lint --color',
+            typescript: 'turbo run typescript --color',
+            test: 'turbo run test --color',
+            verify: 'turbo run lint typescript test --color',
+          },
           workspaces: [packageLocation],
+          devDependencies: {
+            turbo: '^2.5.2',
+          },
           packageManager: 'yarn@4.10.3',
         };
         writeFileSync(
@@ -50,6 +61,27 @@ export async function generateNewMonorepo(
           JSON.stringify(rootPackageJson, null, 2) + '\n',
           'utf-8'
         );
+      }
+
+      const rootTurboConfigPath = join(rootDir, 'turbo.json');
+      if (!existsSync(rootTurboConfigPath)) {
+        const turboConfig = {
+          $schema: 'https://turbo.build/schema.json',
+          tasks: {
+            build: {
+              dependsOn: ['^build'],
+              outputs: ['dist/**'],
+            },
+            lint: {},
+            typescript: {
+              dependsOn: ['^typescript'],
+            },
+            test: {
+              dependsOn: ['^test'],
+            },
+          },
+        };
+        writeFileSync(rootTurboConfigPath, JSON.stringify(turboConfig, null, 2) + '\n', 'utf-8');
       }
 
       // The root owns the package manager and Yarn configuration, so a child
