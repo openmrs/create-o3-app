@@ -126,6 +126,12 @@ describe('package.json template integration', () => {
     expect(packageJson.devDependencies['eslint-plugin-testing-library']).toBeUndefined();
   });
 
+  it('generates a verify script for reusable OpenMRS CI workflows', async () => {
+    const packageJson = await renderPackageJson(baseProjectConfig);
+
+    expect(packageJson.scripts.verify).toBe('yarn lint && yarn typescript && yarn test');
+  });
+
   it('generates a flat eslint config that composes the shared config', async () => {
     await generateFiles(baseProjectConfig, moduleConfig, options, testOutputDir);
 
