@@ -42,9 +42,9 @@ The package is published under the OpenMRS npm scope because the unscoped
 named `create-o3-app`.
 
 > **Passing flags:** with `npx`, append flags directly (`npx
-> @openmrs/create-o3-app@latest my-module-name --standalone`). With `npm
-> create`, separate them from the project name with a `--` (`npm create
-> @openmrs/o3-app@latest my-module-name -- --standalone`); without it, npm
+@openmrs/create-o3-app@latest my-module-name --standalone`). With `npm
+create`, separate them from the project name with a `--` (`npm create
+@openmrs/o3-app@latest my-module-name -- --standalone`); without it, npm
 > intercepts the flags. The flagged examples below use `npx` for that reason.
 
 ## Quick start
@@ -108,6 +108,17 @@ npx @openmrs/create-o3-app@latest my-module --dry-run
 
 This will show you all files that would be created without actually creating them.
 
+```bash
+  npx @openmrs/create-o3-app@latest my-module --skip-install
+```
+
+This generates the project files but skips installing dependencies. When ready, run:
+
+```bash
+  cd openmrs-esm-my-module
+  corepack yarn install
+```
+
 ## Package manager
 
 Generated O3 projects **always use yarn** (yarn 3+) as this is the OpenMRS 3 standard. The CLI will:
@@ -148,9 +159,10 @@ Example: `--route "/patients" --route-component "PatientList"`.
 
 ### Repository options
 
-| Option     | Description             | Default |
-| ---------- | ----------------------- | ------- |
-| `--no-git` | Skip git initialization | `false` |
+| Option           | Description                                     | Default |
+| ---------------- | ----------------------------------------------- | ------- |
+| `--no-git`       | Skip git initialization                         | `false` |
+| `--skip-install` | Generate files but skip dependency installation | `false` |
 
 ### Output options
 
