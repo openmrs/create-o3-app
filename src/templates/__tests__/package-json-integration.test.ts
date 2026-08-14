@@ -126,10 +126,20 @@ describe('package.json template integration', () => {
     expect(packageJson.devDependencies['eslint-plugin-testing-library']).toBeUndefined();
   });
 
-  it('generates a verify script for reusable OpenMRS CI workflows', async () => {
-    const packageJson = await renderPackageJson(baseProjectConfig);
+  it('generates a verify script for standalone modules but omits it from monorepo packages', async () => {
+    const standalone = await renderPackageJson(baseProjectConfig);
+    expect(standalone.scripts.verify).toBe('yarn lint && yarn typescript && yarn test');
 
-    expect(packageJson.scripts.verify).toBe('yarn lint && yarn typescript && yarn test');
+    // A package inside a monorepo must not ship its own verify: the root runs
+    // verification through turbo, and a package-level chain would bypass it
+    const monorepoPackage = await renderPackageJson({
+      ...baseProjectConfig,
+      isMonorepo: true,
+      packageLocation: 'packages/apps/esm-test-module',
+    });
+    expect(monorepoPackage.scripts.verify).toBeUndefined();
+    expect(monorepoPackage.scripts.lint).toBe('eslint src');
+    expect(monorepoPackage.scripts.typescript).toBe('tsc');
   });
 
   it('generates a flat eslint config that composes the shared config', async () => {
