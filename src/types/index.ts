@@ -12,6 +12,7 @@ export interface CreateOptions {
   verbose?: boolean;
   quiet?: boolean;
   force?: boolean;
+  skipInstall?: boolean;
 }
 
 export interface ProjectConfig {
