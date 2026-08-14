@@ -76,9 +76,7 @@ export async function generateNewMonorepo(
             typescript: {
               dependsOn: ['^typescript'],
             },
-            test: {
-              dependsOn: ['^test'],
-            },
+            test: {},
           },
         };
         writeFileSync(rootTurboConfigPath, JSON.stringify(turboConfig, null, 2) + '\n', 'utf-8');
@@ -100,7 +98,7 @@ export async function generateNewMonorepo(
 
       const rootGitignorePath = join(rootDir, '.gitignore');
       if (!existsSync(rootGitignorePath)) {
-        const gitignore = `node_modules\n.DS_Store\ndist\ncoverage\n`;
+        const gitignore = `node_modules\n.DS_Store\ndist\ncoverage\n.turbo\n`;
         writeFileSync(rootGitignorePath, gitignore, 'utf-8');
       }
     } else {

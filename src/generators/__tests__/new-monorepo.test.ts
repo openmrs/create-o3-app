@@ -90,11 +90,20 @@ describe('generateNewMonorepo', () => {
         typescript: {
           dependsOn: ['^typescript'],
         },
-        test: {
-          dependsOn: ['^test'],
-        },
+        // No dependsOn: a package's tests do not need its dependencies' tests
+        // to have run, and adding one serializes the graph for nothing
+        test: {},
       },
     });
+  });
+
+  it('ignores the turbo cache it now generates', async () => {
+    await generateNewMonorepo(projectConfig, moduleConfig, { dryRun: false });
+
+    const call = vi
+      .mocked(writeFileSync)
+      .mock.calls.find(([path]) => String(path).endsWith('demo-mono/.gitignore'));
+    expect(String(call?.[1])).toContain('.turbo');
   });
 
   it('writes module files into the workspace package location', async () => {
