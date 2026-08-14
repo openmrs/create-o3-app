@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { existsSync } from 'fs';
 import { detectPackageManager } from '../package-manager.js';
 
@@ -8,10 +8,6 @@ vi.mock('fs', () => ({
 }));
 
 describe('Package Manager Detection', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should detect pnpm from lock file', () => {
     vi.mocked(existsSync).mockImplementation((path: string) => {
       return path.includes('pnpm-lock.yaml');

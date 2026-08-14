@@ -10,7 +10,6 @@ describe('Logger', () => {
   beforeEach(() => {
     logger.setLevel(LogLevel.INFO);
     logger.setQuiet(false);
-    vi.clearAllMocks();
   });
 
   describe('Log Levels', () => {

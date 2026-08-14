@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { existsSync, readFileSync } from 'fs';
 import { detectMonorepo } from '../monorepo.js';
 
@@ -9,10 +9,6 @@ vi.mock('fs', () => ({
 }));
 
 describe('Monorepo Detection', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should detect pnpm workspace', () => {
     vi.mocked(existsSync).mockImplementation((path: string) => {
       return path.includes('pnpm-workspace.yaml');
