@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { join } from 'path';
 
 vi.mock('fs', () => ({
@@ -37,10 +37,6 @@ import { installDependencies } from '../../utils/package-manager.js';
 import { createInitialCommit, initializeGit } from '../../utils/git.js';
 
 describe('generateStandaloneModule', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('writes files into the package-name directory and installs there', async () => {
     const projectConfig = {
       projectName: 'billing',
