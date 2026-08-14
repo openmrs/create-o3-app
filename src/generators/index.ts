@@ -86,9 +86,8 @@ function showSuccessMessage(
   console.log(chalk.yellow('📋 Next steps:'));
   if (projectConfig.isNewMonorepo) {
     console.log(chalk.gray(`   1. cd ${projectConfig.projectName}`));
-    console.log(chalk.gray(`   2. cd ${projectConfig.packageLocation}`));
-    console.log(chalk.gray(`   3. ${installCommand}`));
-    console.log(chalk.gray(`   4. ${startCommand}`));
+    console.log(chalk.gray(`   2. ${installCommand}`));
+    console.log(chalk.gray(`   3. ${startCommand}`));
   } else {
     console.log(chalk.gray(`   1. cd ${projectName}`));
     console.log(chalk.gray(`   2. ${installCommand}`));
