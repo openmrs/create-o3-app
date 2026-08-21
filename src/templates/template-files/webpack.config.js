@@ -1,12 +1,8 @@
-const config = require('@openmrs/webpack-config');
-const base = config.default ?? config;
+const config = require('openmrs/default-webpack-config');
 
-// See rspack.config.js for the rationale: O3 modules can't realistically hit
-// the default 244 KiB asset-size budget, so the hint just adds noise.
-const disablePerformanceHints = (cfg) => ({
-  ...cfg,
-  performance: { ...(cfg.performance ?? {}), hints: false },
-});
+// The 244 KiB asset-size budget webpack warns about isn't meaningful for O3
+// modules: framework + Carbon design system push every bundle past it, so the
+// hint just adds noise on every build. Disable it.
+config.overrides.performance = { hints: false };
 
-module.exports =
-  typeof base === 'function' ? (...args) => disablePerformanceHints(base(...args)) : disablePerformanceHints(base);
+module.exports = config;

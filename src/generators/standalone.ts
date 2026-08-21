@@ -4,10 +4,12 @@ import chalk from 'chalk';
 import ora from 'ora';
 import type { ProjectConfig, ModuleConfig, CreateOptions } from '../types/index.js';
 import { generateFiles } from '../templates/engine.js';
-import { initializeGit } from '../utils/git.js';
+import { createInitialCommit, initializeGit } from '../utils/git.js';
 import { installDependencies } from '../utils/package-manager.js';
 import { logger } from '../utils/logger.js';
 import { handleFileSystemError } from '../utils/error-handler.js';
+import { assertTargetDirWritable } from '../utils/target-dir.js';
+import { PackageManagerError } from '../utils/errors.js';
 
 export async function generateStandaloneModule(
   projectConfig: ProjectConfig,
@@ -25,6 +27,7 @@ export async function generateStandaloneModule(
   try {
     // Create project directory
     if (!options.dryRun) {
+      assertTargetDirWritable(outputDir, options.force);
       if (!existsSync(outputDir)) {
         try {
           mkdirSync(outputDir, { recursive: true });
@@ -36,8 +39,6 @@ export async function generateStandaloneModule(
             'Ensure the directory does not already exist with conflicting files',
           ]);
         }
-      } else {
-        logger.warn('Project directory already exists', { outputDir });
       }
     } else {
       logger.info(`[DRY RUN] Would create directory: ${outputDir}`);
@@ -80,9 +81,19 @@ export async function generateStandaloneModule(
       logger.info('[DRY RUN] Would install dependencies');
     }
 
+    // Commit after installing, so the lockfile and any install-time changes to
+    // package.json are part of the initial commit rather than pending changes
+    if (projectConfig.git && !options.dryRun) {
+      await createInitialCommit(outputDir);
+    }
+
     spinner.succeed(chalk.green('Standalone module generated successfully!'));
   } catch (error) {
-    spinner.fail(chalk.red('Failed to generate standalone module'));
+    if (error instanceof PackageManagerError) {
+      spinner.fail(chalk.yellow('Module files generated, but dependency installation failed'));
+    } else {
+      spinner.fail(chalk.red('Failed to generate standalone module'));
+    }
     throw error;
   }
 }

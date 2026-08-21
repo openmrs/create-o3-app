@@ -42,7 +42,6 @@ describe('package.json template integration', () => {
     isMonorepo: false,
     isNewMonorepo: false,
     git: true,
-    ci: true,
   };
 
   async function renderPackageJson(projectConfig: ProjectConfig) {
@@ -56,13 +55,47 @@ describe('package.json template integration', () => {
     return JSON.parse(readFileSync(outputPath, 'utf-8'));
   }
 
-  it('generates installable rspack dependencies for standalone modules', async () => {
+  it('stamps the generator marker with the CLI name and version', async () => {
+    const packageJson = await renderPackageJson(baseProjectConfig);
+
+    expect(packageJson.generator).toMatch(/^@openmrs\/create-o3-app@\d+\.\d+\.\d+$/);
+  });
+
+  it('keeps husky hooks for standalone modules but omits them from monorepo packages', async () => {
+    const standalone = await renderPackageJson(baseProjectConfig);
+    expect(standalone.scripts.postinstall).toBe('husky install');
+    expect(standalone.devDependencies.husky).toBeDefined();
+    expect(standalone.devDependencies['lint-staged']).toBeDefined();
+    expect(standalone['lint-staged']).toBeDefined();
+
+    // A package inside a monorepo must not ship git hooks: its postinstall
+    // cannot use the root .git, and the root owns hook configuration
+    const monorepoPackage = await renderPackageJson({
+      ...baseProjectConfig,
+      isMonorepo: true,
+      packageLocation: 'packages/apps/esm-test-module',
+    });
+    expect(monorepoPackage.scripts.postinstall).toBeUndefined();
+    expect(monorepoPackage.devDependencies.husky).toBeUndefined();
+    expect(monorepoPackage.devDependencies['lint-staged']).toBeUndefined();
+    expect(monorepoPackage['lint-staged']).toBeUndefined();
+    // The root owns the package manager, so a child install cannot disagree
+    // with a root install about the Yarn version or the linker
+    expect(monorepoPackage.packageManager).toBeUndefined();
+    expect(standalone.packageManager).toBe('yarn@4.10.3');
+  });
+
+  it('relies on the openmrs package for the build toolchain, like template-app', async () => {
     const packageJson = await renderPackageJson(baseProjectConfig);
 
     expect(packageJson.devDependencies['@openmrs/esm-framework']).toBe('next');
-    expect(packageJson.devDependencies['@openmrs/rspack-config']).toBe('next');
-    expect(packageJson.devDependencies['@rspack/cli']).toBe('^1.7.10');
-    expect(packageJson.devDependencies['@rspack/core']).toBe('^1.7.10');
+    expect(packageJson.devDependencies.openmrs).toBe('next');
+    // The openmrs package provides the configs and binaries; installing them
+    // directly duplicated the toolchain and drifted from its pinned versions
+    expect(packageJson.devDependencies['@openmrs/rspack-config']).toBeUndefined();
+    expect(packageJson.devDependencies['@rspack/cli']).toBeUndefined();
+    expect(packageJson.devDependencies['@rspack/core']).toBeUndefined();
+    expect(packageJson.devDependencies.webpack).toBeUndefined();
     expect(Object.values(packageJson.devDependencies)).not.toContain('workspace:*');
   });
 
@@ -82,20 +115,50 @@ describe('package.json template integration', () => {
     });
 
     expect(packageJson.devDependencies['@openmrs/esm-framework']).toBe('next');
-    expect(packageJson.devDependencies['@openmrs/rspack-config']).toBe('next');
     expect(Object.values(packageJson.devDependencies)).not.toContain('workspace:*');
   });
 
-  it('includes the eslint plugins referenced by the generated eslint config', async () => {
+  it('references the shared eslint config instead of individual plugins', async () => {
     const packageJson = await renderPackageJson(baseProjectConfig);
 
-    expect(packageJson.devDependencies['@typescript-eslint/eslint-plugin']).toBeDefined();
-    expect(packageJson.devDependencies['@typescript-eslint/parser']).toBeDefined();
-    expect(packageJson.devDependencies['eslint-plugin-import']).toBeDefined();
-    expect(packageJson.devDependencies['eslint-plugin-jest-dom']).toBeDefined();
-    expect(packageJson.devDependencies['eslint-plugin-playwright']).toBeDefined();
-    expect(packageJson.devDependencies['eslint-plugin-react-hooks']).toBeDefined();
-    expect(packageJson.devDependencies['eslint-plugin-testing-library']).toBeDefined();
+    expect(packageJson.devDependencies['@openmrs/eslint-config']).toBeDefined();
+    expect(packageJson.devDependencies['eslint']).toBe('^9.39.0');
+    // Provided by @openmrs/eslint-config, so generated apps must not declare them.
+    expect(packageJson.devDependencies['@typescript-eslint/eslint-plugin']).toBeUndefined();
+    expect(packageJson.devDependencies['@typescript-eslint/parser']).toBeUndefined();
+    expect(packageJson.devDependencies['eslint-plugin-import']).toBeUndefined();
+    expect(packageJson.devDependencies['eslint-plugin-jest-dom']).toBeUndefined();
+    expect(packageJson.devDependencies['eslint-plugin-playwright']).toBeUndefined();
+    expect(packageJson.devDependencies['eslint-plugin-react-hooks']).toBeUndefined();
+    expect(packageJson.devDependencies['eslint-plugin-testing-library']).toBeUndefined();
+  });
+
+  it('generates a verify script for standalone modules but omits it from monorepo packages', async () => {
+    const standalone = await renderPackageJson(baseProjectConfig);
+    expect(standalone.scripts.verify).toBe('yarn lint && yarn typescript && yarn test');
+
+    // A package inside a monorepo must not ship its own verify: the root runs
+    // verification through turbo, and a package-level chain would bypass it
+    const monorepoPackage = await renderPackageJson({
+      ...baseProjectConfig,
+      isMonorepo: true,
+      packageLocation: 'packages/apps/esm-test-module',
+    });
+    expect(monorepoPackage.scripts.verify).toBeUndefined();
+    expect(monorepoPackage.scripts.lint).toBe('eslint src');
+    expect(monorepoPackage.scripts.typescript).toBe('tsc');
+  });
+
+  it('generates a flat eslint config that composes the shared config', async () => {
+    await generateFiles(baseProjectConfig, moduleConfig, options, testOutputDir);
+
+    const projectDir = join(testOutputDir, baseProjectConfig.projectName);
+    expect(existsSync(join(projectDir, 'eslint.config.mjs'))).toBe(true);
+    expect(existsSync(join(projectDir, '.eslintrc'))).toBe(false);
+
+    const eslintConfig = readFileSync(join(projectDir, 'eslint.config.mjs'), 'utf-8');
+    expect(eslintConfig).toContain("from '@openmrs/eslint-config'");
+    expect(eslintConfig).toContain("'react-hooks/exhaustive-deps': 'warn'");
   });
 
   it('generates a lint-safe empty config schema type', async () => {

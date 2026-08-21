@@ -1,4 +1,4 @@
-import { getAsyncLifecycle, getSyncLifecycle, defineConfigSchema } from '@openmrs/esm-framework';
+import { getAsyncLifecycle, defineConfigSchema } from '@openmrs/esm-framework';
 import { configSchema } from './config-schema';
 import { moduleName } from './constants';
 
@@ -19,7 +19,7 @@ export const root = getAsyncLifecycle(() => import('./root.component'), options)
 // Extensions
 {{#if extensions}}
 {{#each extensions}}
-export const {{camelCase this.componentName}} = getSyncLifecycle(
+export const {{camelCase this.componentName}} = getAsyncLifecycle(
   () => import('./{{kebabCase this.componentName}}.component'),
   options
 );
@@ -30,7 +30,7 @@ export const {{camelCase this.componentName}} = getSyncLifecycle(
 {{#if modals}}
 {{#each modals}}
 export const {{camelCase this.componentName}} = getAsyncLifecycle(
-  () => import('./{{kebabCase this.componentName}}.component'),
+  () => import('./{{this.fileBaseName}}.modal'),
   options
 );
 {{/each}}
@@ -40,7 +40,7 @@ export const {{camelCase this.componentName}} = getAsyncLifecycle(
 {{#if workspaces}}
 {{#each workspaces}}
 export const {{camelCase this.componentName}} = getAsyncLifecycle(
-  () => import('./{{kebabCase this.componentName}}.component'),
+  () => import('./{{this.fileBaseName}}.workspace'),
   options
 );
 {{/each}}

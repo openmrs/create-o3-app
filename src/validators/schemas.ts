@@ -117,14 +117,6 @@ export const backendDependencySchema = z.object({
 });
 
 /**
- * Path alias validation schema
- */
-export const pathAliasSchema = z
-  .string()
-  .min(1, 'Path alias is required')
-  .regex(/^[a-z0-9-]+$/, 'Path alias can only contain lowercase letters, numbers, and hyphens');
-
-/**
  * Workspace name validation schema
  */
 export const workspaceNameSchema = z
@@ -169,7 +161,6 @@ export const projectConfigSchema = z.object({
   isNewMonorepo: z.boolean(),
   packageLocation: packageLocationSchema.optional(),
   git: z.boolean(),
-  ci: z.boolean(),
 });
 
 /**
@@ -210,7 +201,6 @@ export const workspaceConfigSchema = z.object({
   name: workspaceNameSchema,
   title: z.string().min(1, 'Workspace title is required'),
   componentName: componentNameSchema,
-  type: z.enum(['form', 'chart', 'other']),
 });
 
 /**
@@ -226,7 +216,7 @@ export const featureFlagConfigSchema = z.object({
  * Complete module configuration validation schema
  */
 export const moduleConfigSchema = z.object({
-  type: z.enum(['page', 'extension', 'both', 'modal']),
+  type: z.enum(['page', 'extension', 'both']),
   routes: z.array(routeConfigSchema).optional(),
   extensions: z.array(extensionConfigSchema).optional(),
   modals: z.array(modalConfigSchema).optional(),
@@ -234,13 +224,6 @@ export const moduleConfigSchema = z.object({
   featureFlags: z.array(featureFlagConfigSchema).optional(),
   backendDependencies: z.array(backendDependencySchema).optional(),
   offline: z.boolean().optional(),
-  errorBoundary: z.boolean().optional(),
-  pathAliases: z.array(pathAliasSchema).optional(),
-  coverageThresholds: z.boolean().optional(),
-  accessibility: z.boolean().optional(),
-  dependabot: z.boolean().optional(),
-  contributing: z.boolean().optional(),
-  turbo: z.boolean().optional(),
 });
 
 /**
@@ -256,8 +239,8 @@ export const createOptionsSchema = z.object({
   route: routePathSchema.optional(),
   routeComponent: componentNameSchema.optional(),
   git: z.boolean().optional(),
-  ci: z.boolean().optional(),
   dryRun: z.boolean().optional(),
   verbose: z.boolean().optional(),
   quiet: z.boolean().optional(),
+  force: z.boolean().optional(),
 });

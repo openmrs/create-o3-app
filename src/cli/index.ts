@@ -34,13 +34,19 @@ program
   .option('--package-name <name>', 'NPM package name (overrides default package name)')
   .option('--rspack', 'Deprecated; rspack is now the default build tool')
   .option('--webpack', 'Use webpack instead of rspack as build tool')
-  .option('--standalone', 'Create standalone module (not in monorepo)')
-  .option('--monorepo', 'Create module in existing monorepo (detects monorepo automatically)')
-  .option('--new-monorepo', 'Create new monorepo root with this module as first package')
+  .option(
+    '--standalone',
+    'Create standalone module (not in monorepo); uses non-interactive defaults'
+  )
+  .option('--monorepo', 'Create module in existing monorepo; uses non-interactive defaults')
+  .option(
+    '--new-monorepo',
+    'Create new monorepo root with this module as first package; uses non-interactive defaults'
+  )
   .option('--route <route>', 'Route path for page-based modules (e.g., "/patients")')
   .option('--route-component <name>', 'Component name for the route (use with --route)')
   .option('--no-git', 'Skip git initialization')
-  .option('--no-ci', 'Skip CI workflow generation')
+  .option('--force', 'Overwrite files in a non-empty target directory')
   .option('--dry-run', 'Preview changes without executing')
   .option('--verbose', 'Verbose output')
   .option('--quiet', 'Suppress output')
@@ -49,7 +55,7 @@ program
     `
 Examples:
   $ create-o3-app my-module --standalone
-  $ create-o3-app my-module --monorepo --route "/patients"
+  $ create-o3-app my-module --monorepo --route "/patients" --route-component "PatientList"
   $ create-o3-app my-module --dry-run
   $ create-o3-app my-module --package-name "@openmrs/esm-my-module" --webpack
   $ create-o3-app my-module --new-monorepo --route "/patients" --route-component "PatientList"

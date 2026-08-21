@@ -4,6 +4,8 @@ import chalk from 'chalk';
 import ora from 'ora';
 import type { ProjectConfig, ModuleConfig, CreateOptions } from '../types/index.js';
 import { generateFiles } from '../templates/engine.js';
+import { assertTargetDirWritable } from '../utils/target-dir.js';
+import { createInitialCommit, initializeGit } from '../utils/git.js';
 import { logger } from '../utils/logger.js';
 import { handleFileSystemError } from '../utils/error-handler.js';
 
@@ -19,6 +21,10 @@ export async function generateNewMonorepo(
 
   try {
     if (!options.dryRun) {
+      // Refuse before writing anything. Guarding only the package directory
+      // left an unrelated non-empty root being given a manifest, a README, a
+      // .gitignore, and a package directory.
+      assertTargetDirWritable(rootDir, options.force);
       if (!existsSync(rootDir)) {
         try {
           mkdirSync(rootDir, { recursive: true });
@@ -36,13 +42,52 @@ export async function generateNewMonorepo(
         const rootPackageJson = {
           name: projectConfig.projectName,
           private: true,
+          scripts: {
+            start: `yarn workspace ${projectConfig.packageName} start`,
+            build: 'turbo run build --color',
+            lint: 'turbo run lint --color',
+            typescript: 'turbo run typescript --color',
+            test: 'turbo run test --color',
+            verify: 'turbo run lint typescript test --color',
+          },
           workspaces: [packageLocation],
+          devDependencies: {
+            turbo: '^2.5.2',
+          },
+          packageManager: 'yarn@4.10.3',
         };
         writeFileSync(
           rootPackageJsonPath,
           JSON.stringify(rootPackageJson, null, 2) + '\n',
           'utf-8'
         );
+      }
+
+      const rootTurboConfigPath = join(rootDir, 'turbo.json');
+      if (!existsSync(rootTurboConfigPath)) {
+        const turboConfig = {
+          $schema: 'https://turbo.build/schema.json',
+          tasks: {
+            build: {
+              dependsOn: ['^build'],
+              outputs: ['dist/**'],
+            },
+            lint: {},
+            typescript: {
+              dependsOn: ['^typescript'],
+            },
+            test: {},
+          },
+        };
+        writeFileSync(rootTurboConfigPath, JSON.stringify(turboConfig, null, 2) + '\n', 'utf-8');
+      }
+
+      // The root owns the package manager and Yarn configuration, so a child
+      // install cannot disagree with a root install about the linker or the
+      // Yarn version
+      const rootYarnrcPath = join(rootDir, '.yarnrc.yml');
+      if (!existsSync(rootYarnrcPath)) {
+        writeFileSync(rootYarnrcPath, 'nodeLinker: node-modules\n', 'utf-8');
       }
 
       const rootReadmePath = join(rootDir, 'README.md');
@@ -53,7 +98,7 @@ export async function generateNewMonorepo(
 
       const rootGitignorePath = join(rootDir, '.gitignore');
       if (!existsSync(rootGitignorePath)) {
-        const gitignore = `node_modules\n.DS_Store\ndist\ncoverage\n`;
+        const gitignore = `node_modules\n.DS_Store\ndist\ncoverage\n.turbo\n`;
         writeFileSync(rootGitignorePath, gitignore, 'utf-8');
       }
     } else {
@@ -69,6 +114,13 @@ export async function generateNewMonorepo(
     if (options.dryRun) {
       spinner.succeed(chalk.yellow('Dry run completed - no files were created'));
       return;
+    }
+
+    // Initialize git at the monorepo root, like standalone projects do
+    if (projectConfig.git) {
+      spinner.text = '[3/3] Initializing git repository...';
+      await initializeGit(rootDir);
+      await createInitialCommit(rootDir);
     }
 
     spinner.succeed(chalk.green('New monorepo generated successfully!'));

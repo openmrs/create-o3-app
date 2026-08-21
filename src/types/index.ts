@@ -8,10 +8,10 @@ export interface CreateOptions {
   route?: string;
   routeComponent?: string;
   git?: boolean;
-  ci?: boolean;
   dryRun?: boolean;
   verbose?: boolean;
   quiet?: boolean;
+  force?: boolean;
 }
 
 export interface ProjectConfig {
@@ -23,11 +23,10 @@ export interface ProjectConfig {
   isNewMonorepo: boolean;
   packageLocation?: string;
   git: boolean;
-  ci: boolean;
 }
 
 export interface ModuleConfig {
-  type: 'page' | 'extension' | 'both' | 'modal';
+  type: 'page' | 'extension' | 'both';
   routes?: RouteConfig[];
   extensions?: ExtensionConfig[];
   modals?: ModalConfig[];
@@ -35,13 +34,6 @@ export interface ModuleConfig {
   featureFlags?: FeatureFlagConfig[];
   backendDependencies?: BackendDependency[];
   offline?: boolean;
-  errorBoundary?: boolean;
-  pathAliases?: string[];
-  coverageThresholds?: boolean;
-  accessibility?: boolean;
-  dependabot?: boolean;
-  contributing?: boolean;
-  turbo?: boolean;
 }
 
 export interface RouteConfig {
@@ -70,7 +62,6 @@ export interface WorkspaceConfig {
   name: string;
   title: string;
   componentName: string;
-  type: 'form' | 'chart' | 'other';
 }
 
 export interface FeatureFlagConfig {

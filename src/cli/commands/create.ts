@@ -3,9 +3,8 @@ import ora from 'ora';
 import { createProject } from '../../generators/index.js';
 import type { CreateOptions } from '../../types/index.js';
 import { validateProjectName, validateCreateOptions } from '../../validators/index.js';
-import { handleError } from '../../utils/error-handler.js';
+import { handleError, handleValidationError } from '../../utils/error-handler.js';
 import { logger } from '../../utils/logger.js';
-import { handleValidationError } from '../../utils/error-handler.js';
 
 export async function createCommand(
   projectName: string | undefined,
@@ -23,6 +22,12 @@ export async function createCommand(
       logger.setLevel(3); // DEBUG
     } else if (options.quiet) {
       logger.setQuiet(true);
+    }
+
+    if (options.rspack && options.webpack) {
+      handleValidationError('options', 'Invalid options provided', [
+        'Pass either --webpack or --rspack, not both (rspack is the default)',
+      ]);
     }
 
     if (options.rspack) {

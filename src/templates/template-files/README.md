@@ -4,10 +4,10 @@
 
 ## Quick start
 
-\`\`\`bash
+```bash
 yarn install
 yarn start
-\`\`\`
+```
 
 {{#if routes}}
 Once started, your module will be available at:
@@ -20,7 +20,7 @@ Once started, your module will be available at:
 - ✅ Carbon Design System integration
 - ✅ Internationalization (i18n) ready
 - ✅ TypeScript configuration
-- ✅ Jest testing setup
+- ✅ Vitest testing setup
 - ✅ ESLint + Prettier
 
 ## Learn more
@@ -57,9 +57,15 @@ See the [Routing Guide](https://o3-docs.openmrs.org/docs/frontend-modules/routin
 Learn about the [Extension System](https://o3-docs.openmrs.org/docs/extension-system).
 {{/if}}
 
+{{#if workspaces}}
+### Adjusting the workspace scope
+
+Your workspaces are registered to a workspace group scoped to the pattern `{{workspaceScopePattern}}` (anchored to the module's first route, or `^/` when there is none). If you add routes that should also launch these workspaces, or launch them from extensions on other pages, adjust the group's `scopePattern` in `src/routes.json`.
+{{/if}}
+
 ### Development commands
 
-\`\`\`bash
+```bash
 # Start development server
 yarn start
 
@@ -83,13 +89,62 @@ yarn lint
 
 # Format code
 yarn prettier
-\`\`\`
+```
+
+### Setting up source path aliases
+
+If you want `@hooks/*`-style imports, three configs must agree, and the build config is the one that's easy to forget. Add matching entries to all of them:
+
+**tsconfig.json**
+
+```json
+"paths": {
+  "@hooks/*": ["./src/hooks/*"]
+}
+```
+
+**vitest.config.ts** (under `test.alias`)
+
+```ts
+{ find: /^@hooks\/(.*)$/, replacement: r('./src/hooks/') + '$1' },
+```
+
+**{{#if_eq buildTool 'webpack'}}webpack.config.js{{else}}rspack.config.js{{/if_eq}}** (merged into the exported config)
+
+```js
+const path = require('path');
+
+// ...
+resolve: {
+  alias: {
+    '@hooks': path.resolve(__dirname, 'src/hooks/'),
+  },
+},
+```
+
+Without the build config entry, aliased imports pass type checking and tests but fail `yarn build`. See [openmrs-esm-form-builder](https://github.com/openmrs/openmrs-esm-form-builder) for a working example.
+
+### Enforcing coverage thresholds
+
+`yarn coverage` reports coverage without failing the build. To enforce minimums once your test suite has grown into them, add thresholds to the `coverage` block in `vitest.config.ts`:
+
+```ts
+coverage: {
+  // ...
+  thresholds: {
+    statements: 80,
+    branches: 80,
+    functions: 80,
+    lines: 80,
+  },
+},
+```
 
 ## Installation
 
-\`\`\`bash
+```bash
 yarn add {{packageName}}
-\`\`\`
+```
 
 ## Usage
 
@@ -97,36 +152,30 @@ yarn add {{packageName}}
 
 ## Building
 
-\`\`\`bash
+```bash
 yarn build
-\`\`\`
+```
 
 ## Testing
 
-\`\`\`bash
+```bash
 yarn test
-\`\`\`
+```
 
 ## Troubleshooting
 
 ### `openmrs develop` crashes with `Cannot read properties of undefined (reading 'devServer')`
 
-Ensure your build config exports the default OpenMRS config:
+Ensure your build config re-exports the default OpenMRS config, for example:
 
-For rspack (default):
-\`\`\`js
-const config = require('@openmrs/rspack-config');
-
-module.exports = config.default ?? config;
-\`\`\`
-
-For webpack:
-\`\`\`js
-const config = require('@openmrs/webpack-config');
-
-module.exports = config.default ?? config;
-\`\`\`
+```js
+module.exports = require('openmrs/default-{{buildTool}}-config');
+```
 
 ### Yarn peer dependency warnings (dayjs, i18next, single-spa, swr, react-is, sass)
 
-If you see missing peer dependency warnings, add the missing deps and align `react-i18next` to `11.x` in your `package.json`, then re-run `yarn install`.
+If you see missing peer dependency warnings, add the missing packages to your `devDependencies` at the versions the warnings name, then re-run `yarn install`.
+
+---
+
+This module was scaffolded with [`@openmrs/create-o3-app`](https://github.com/openmrs/create-o3-app). The `generator` field in `package.json` records the CLI version that produced it and is safe to remove.

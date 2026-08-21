@@ -146,12 +146,11 @@ Generated O3 projects **always use yarn** (yarn 3+) as this is the OpenMRS 3 sta
 modules. Route paths can optionally start with `/` but must not end with `/`.
 Example: `--route "/patients" --route-component "PatientList"`.
 
-### Feature flags
+### Repository options
 
 | Option     | Description             | Default |
 | ---------- | ----------------------- | ------- |
 | `--no-git` | Skip git initialization | `false` |
-| `--no-ci`  | Skip CI workflow        | `false` |
 
 ### Output options
 
@@ -192,7 +191,7 @@ my-module/
 ├── tsconfig.json             # TypeScript configuration
 ├── jest.config.js            # Jest configuration
 ├── webpack.config.js         # Webpack configuration (or rspack.config.js)
-├── .eslintrc                 # ESLint configuration
+├── eslint.config.mjs         # ESLint configuration
 ├── prettier.config.js        # Prettier configuration
 ├── .gitignore                # Git ignore rules
 ├── .editorconfig             # Editor configuration
@@ -216,7 +215,7 @@ my-module/
 - **`tsconfig.json`** - TypeScript configuration with path aliases
 - **`jest.config.js`** - Jest test configuration
 - **`webpack.config.js`** or **`rspack.config.js`** - Build tool configuration
-- **`.eslintrc`** - ESLint rules for TypeScript and React
+- **`eslint.config.mjs`** - ESLint flat config composing [`@openmrs/eslint-config`](https://github.com/openmrs/openmrs-contrib-eslint-config)
 - **`prettier.config.js`** - Code formatting rules
 
 ### Development tools

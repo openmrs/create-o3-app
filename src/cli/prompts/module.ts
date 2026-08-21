@@ -2,21 +2,31 @@ import prompts from 'prompts';
 import chalk from 'chalk';
 import type { ProjectConfig, ModuleConfig, CreateOptions } from '../../types/index.js';
 import {
+  deriveDefaultComponentName,
+  OutputFileClaims,
+  reservedComponentNameError,
+  type ComponentKind,
+} from '../../templates/naming.js';
+import {
   validateComponentName,
   validateExtensionName,
+  validateFeatureFlagName,
   validateSlotName,
   validateBackendDependency,
+  validateWorkspaceName,
 } from '../../validators/index.js';
+
+/** A prompts response is missing its answer when the user cancelled (Ctrl-C). */
+function cancelled(answer: unknown): boolean {
+  return answer === undefined;
+}
 
 export async function promptModuleConfig(
   projectConfig: ProjectConfig,
   options: CreateOptions
 ): Promise<ModuleConfig> {
-  // Check if we're in non-interactive mode (CI, no TTY, flags provided, or defaulted to standalone)
+  // Check if we're in non-interactive mode (CI, no TTY, or flags provided)
   const componentName = options.routeComponent;
-  // If project was defaulted to standalone (no flags provided), treat as non-interactive
-  const wasDefaultedToStandalone =
-    !options.standalone && !options.monorepo && !options.newMonorepo && !projectConfig.isMonorepo;
   const isNonInteractive =
     options.quiet ||
     process.env.CI === 'true' ||
@@ -24,13 +34,12 @@ export async function promptModuleConfig(
     options.standalone ||
     options.monorepo ||
     options.newMonorepo ||
-    wasDefaultedToStandalone ||
     (options.route && componentName);
 
   // Determine module type from options
   // If route/component provided, assume 'page'
   // Otherwise prompt (unless non-interactive, in which case default to 'page')
-  let moduleType: 'page' | 'extension' | 'both' | 'modal' = 'page';
+  let moduleType: 'page' | 'extension' | 'both' = 'page';
 
   if (options.route || componentName) {
     moduleType = 'page';
@@ -57,6 +66,27 @@ export async function promptModuleConfig(
     type: moduleType,
   };
 
+  // Tracks generated output files so a later prompt answer cannot silently
+  // overwrite an earlier component's files; the engine re-checks at
+  // generation time as a backstop
+  const fileClaims = new OutputFileClaims();
+  const componentNameValidator = (kind: ComponentKind) => (value: string) => {
+    if (!value) return 'Component name is required';
+    const validation = validateComponentName(value);
+    if (!validation.success) {
+      return validation.errors[0] || 'Invalid component name';
+    }
+    const reserved = reservedComponentNameError(value);
+    if (reserved) {
+      return reserved;
+    }
+    const collision = fileClaims.check(kind, value);
+    if (collision) {
+      return collision;
+    }
+    return true;
+  };
+
   // Routes (if page or both)
   if (config.type === 'page' || config.type === 'both') {
     config.routes = [];
@@ -68,7 +98,6 @@ export async function promptModuleConfig(
         path: options.route,
         componentName: componentName,
         online: true,
-        offline: true,
       });
 
       // Show URL info for the provided route
@@ -82,16 +111,12 @@ export async function promptModuleConfig(
     } else {
       // Always create a default route when no route flags provided (avoids hanging prompts)
       const defaultRoute = `/${projectConfig.projectName}`;
-      const defaultComponent = projectConfig.projectName
-        .split('-')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join('');
+      const defaultComponent = deriveDefaultComponentName(projectConfig.projectName);
 
       config.routes.push({
         path: defaultRoute,
         componentName: defaultComponent,
         online: true,
-        offline: true,
       });
 
       // Show URL info for the created route
@@ -109,11 +134,16 @@ export async function promptModuleConfig(
         // But for now, we'll skip to avoid hanging
       }
     }
+
+    // Seed the claims so later prompts validate against the route components
+    // (collisions here, e.g. a component named Root, are caught by the engine)
+    config.routes.forEach((route) => fileClaims.claim('page', route.componentName));
   }
 
   // Extensions (if extension or both)
   if (config.type === 'extension' || config.type === 'both') {
     config.extensions = [];
+    const usedNames = new Set<string>();
     let addMore = true;
     while (addMore) {
       const extension = await prompts({
@@ -126,9 +156,13 @@ export async function promptModuleConfig(
           if (!validation.success) {
             return validation.errors[0] || 'Invalid extension name';
           }
+          if (usedNames.has(value)) {
+            return `An extension named "${value}" is already defined`;
+          }
           return true;
         },
       });
+      if (cancelled(extension.name)) break;
       const slot = await prompts({
         type: 'text',
         name: 'name',
@@ -142,26 +176,39 @@ export async function promptModuleConfig(
           return true;
         },
       });
+      if (cancelled(slot.name)) break;
       const component = await prompts({
         type: 'text',
         name: 'name',
         message: 'Component name:',
+        validate: componentNameValidator('extension'),
+      });
+      if (cancelled(component.name)) break;
+      const featureFlag = await prompts({
+        type: 'text',
+        name: 'name',
+        message:
+          "Feature flag to gate this extension (yours or another module's; leave empty for none):",
+        initial: '',
         validate: (value: string) => {
-          if (!value) return 'Component name is required';
-          const validation = validateComponentName(value);
+          if (!value) return true;
+          const validation = validateFeatureFlagName(value);
           if (!validation.success) {
-            return validation.errors[0] || 'Invalid component name';
+            return validation.errors[0] || 'Invalid feature flag name';
           }
           return true;
         },
       });
+      if (cancelled(featureFlag.name)) break;
       config.extensions.push({
         name: extension.name,
         slot: slot.name,
         componentName: component.name,
         online: true,
-        offline: true,
+        featureFlag: featureFlag.name || undefined,
       });
+      usedNames.add(extension.name);
+      fileClaims.claim('extension', component.name);
       const more = await prompts({
         type: 'confirm',
         name: 'addMore',
@@ -182,7 +229,47 @@ export async function promptModuleConfig(
     });
     if (modalsResponse.create) {
       config.modals = [];
-      // TODO: Prompt for modals
+      const usedNames = new Set<string>();
+      let addMore = true;
+      while (addMore) {
+        const modal = await prompts({
+          type: 'text',
+          name: 'name',
+          message: 'Modal name:',
+          validate: (value: string) => {
+            if (!value) return 'Modal name is required';
+            const validation = validateExtensionName(value);
+            if (!validation.success) {
+              return validation.errors[0] || 'Invalid modal name';
+            }
+            if (usedNames.has(value)) {
+              return `A modal named "${value}" is already defined`;
+            }
+            return true;
+          },
+        });
+        if (cancelled(modal.name)) break;
+        const component = await prompts({
+          type: 'text',
+          name: 'name',
+          message: 'Component name:',
+          validate: componentNameValidator('modal'),
+        });
+        if (cancelled(component.name)) break;
+        config.modals.push({
+          name: modal.name,
+          componentName: component.name,
+        });
+        usedNames.add(modal.name);
+        fileClaims.claim('modal', component.name);
+        const more = await prompts({
+          type: 'confirm',
+          name: 'addMore',
+          message: 'Add more modals?',
+          initial: false,
+        });
+        addMore = more.addMore;
+      }
     }
   } else {
     config.modals = undefined;
@@ -198,7 +285,55 @@ export async function promptModuleConfig(
     });
     if (workspacesResponse.create) {
       config.workspaces = [];
-      // TODO: Prompt for workspaces
+      const usedNames = new Set<string>();
+      let addMore = true;
+      while (addMore) {
+        const workspace = await prompts({
+          type: 'text',
+          name: 'name',
+          message: 'Workspace name:',
+          validate: (value: string) => {
+            if (!value) return 'Workspace name is required';
+            const validation = validateWorkspaceName(value);
+            if (!validation.success) {
+              return validation.errors[0] || 'Invalid workspace name';
+            }
+            if (usedNames.has(value)) {
+              return `A workspace named "${value}" is already defined`;
+            }
+            return true;
+          },
+        });
+        if (cancelled(workspace.name)) break;
+        const title = await prompts({
+          type: 'text',
+          name: 'title',
+          message: 'Workspace title:',
+          validate: (value: string) => (value ? true : 'Workspace title is required'),
+        });
+        if (cancelled(title.title)) break;
+        const component = await prompts({
+          type: 'text',
+          name: 'name',
+          message: 'Component name:',
+          validate: componentNameValidator('workspace'),
+        });
+        if (cancelled(component.name)) break;
+        config.workspaces.push({
+          name: workspace.name,
+          title: title.title,
+          componentName: component.name,
+        });
+        usedNames.add(workspace.name);
+        fileClaims.claim('workspace', component.name);
+        const more = await prompts({
+          type: 'confirm',
+          name: 'addMore',
+          message: 'Add more workspaces?',
+          initial: false,
+        });
+        addMore = more.addMore;
+      }
     }
   } else {
     config.workspaces = undefined;
@@ -214,10 +349,77 @@ export async function promptModuleConfig(
     });
     if (featureFlagsResponse.create) {
       config.featureFlags = [];
-      // TODO: Prompt for feature flags
+      const usedNames = new Set<string>();
+      let addMore = true;
+      while (addMore) {
+        const flag = await prompts({
+          type: 'text',
+          name: 'name',
+          message: 'Feature flag name:',
+          validate: (value: string) => {
+            if (!value) return 'Feature flag name is required';
+            const validation = validateFeatureFlagName(value);
+            if (!validation.success) {
+              return validation.errors[0] || 'Invalid feature flag name';
+            }
+            if (usedNames.has(value)) {
+              return `A feature flag named "${value}" is already defined`;
+            }
+            return true;
+          },
+        });
+        if (cancelled(flag.name)) break;
+        const label = await prompts({
+          type: 'text',
+          name: 'label',
+          message: 'Feature flag label:',
+          validate: (value: string) => (value ? true : 'Feature flag label is required'),
+        });
+        if (cancelled(label.label)) break;
+        const description = await prompts({
+          type: 'text',
+          name: 'description',
+          message: 'Feature flag description:',
+          validate: (value: string) => (value ? true : 'Feature flag description is required'),
+        });
+        if (cancelled(description.description)) break;
+        config.featureFlags.push({
+          name: flag.name,
+          label: label.label,
+          description: description.description,
+        });
+        usedNames.add(flag.name);
+        const more = await prompts({
+          type: 'confirm',
+          name: 'addMore',
+          message: 'Add more feature flags?',
+          initial: false,
+        });
+        addMore = more.addMore;
+      }
     }
   } else {
     config.featureFlags = undefined;
+  }
+
+  // Confirm feature flag references that no local definition matches: a
+  // cross-module reference is valid, but if the name is a typo that no app
+  // registers, the framework filters the extension out forever
+  if (!isNonInteractive && config.extensions?.length) {
+    const definedFlags = new Set((config.featureFlags ?? []).map((flag) => flag.name));
+    for (const extension of config.extensions) {
+      if (extension.featureFlag && !definedFlags.has(extension.featureFlag)) {
+        const response = await prompts({
+          type: 'confirm',
+          name: 'keep',
+          message: `"${extension.featureFlag}" (gating extension "${extension.name}") is not defined in this module. Keep it as a reference to a flag registered by another module?`,
+          initial: false,
+        });
+        if (response.keep === false) {
+          delete extension.featureFlag;
+        }
+      }
+    }
   }
 
   // Backend dependencies (skip if non-interactive mode)
@@ -263,88 +465,25 @@ export async function promptModuleConfig(
   if (isNonInteractive) {
     // Use sensible defaults when non-interactive
     config.offline = false;
-    config.errorBoundary = false;
-    config.pathAliases = undefined;
-    config.coverageThresholds = true;
-    config.accessibility = true;
-    config.dependabot = true;
-    config.contributing = true;
-    config.turbo = false;
   } else {
     config.offline = (
       await prompts({
         type: 'confirm',
         name: 'offline',
-        message: 'Add offline support?',
+        message: 'Mark pages and extensions as available offline in routes.json?',
         initial: false,
       })
     ).offline;
-
-    config.errorBoundary = (
-      await prompts({
-        type: 'confirm',
-        name: 'errorBoundary',
-        message: 'Generate error boundary component?',
-        initial: false,
-      })
-    ).errorBoundary;
-
-    config.pathAliases = (
-      await prompts({
-        type: 'confirm',
-        name: 'pathAliases',
-        message: 'Set up path aliases for hooks/resources/utils?',
-        initial: false,
-      })
-    ).pathAliases
-      ? ['hooks', 'resources', 'utils']
-      : undefined;
-
-    config.coverageThresholds = (
-      await prompts({
-        type: 'confirm',
-        name: 'coverage',
-        message: 'Set up test coverage thresholds?',
-        initial: true,
-      })
-    ).coverage;
-
-    config.accessibility = (
-      await prompts({
-        type: 'confirm',
-        name: 'accessibility',
-        message: 'Add eslint-plugin-jsx-a11y for accessibility?',
-        initial: true,
-      })
-    ).accessibility;
-
-    config.dependabot = (
-      await prompts({
-        type: 'confirm',
-        name: 'dependabot',
-        message: 'Set up Dependabot for dependency updates?',
-        initial: true,
-      })
-    ).dependabot;
-
-    config.contributing = (
-      await prompts({
-        type: 'confirm',
-        name: 'contributing',
-        message: 'Generate CONTRIBUTING.md?',
-        initial: true,
-      })
-    ).contributing;
-
-    config.turbo = (
-      await prompts({
-        type: 'confirm',
-        name: 'turbo',
-        message: 'Include turbo.json for consistent commands?',
-        initial: false,
-      })
-    ).turbo;
   }
+
+  // Apply the offline support answer to the generated routes and extensions
+  const offline = config.offline ?? false;
+  config.routes?.forEach((route) => {
+    route.offline = offline;
+  });
+  config.extensions?.forEach((extension) => {
+    extension.offline = offline;
+  });
 
   return config;
 }

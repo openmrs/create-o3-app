@@ -49,7 +49,6 @@ describe('Template Engine', () => {
     isNewMonorepo: false,
     packageLocation: undefined,
     git: true,
-    ci: true,
   };
 
   const mockModuleConfig: ModuleConfig = {
@@ -65,7 +64,6 @@ describe('Template Engine', () => {
 
   const mockOptions: CreateOptions = {
     git: true,
-    ci: true,
     dryRun: false,
     verbose: false,
     quiet: false,
@@ -230,6 +228,24 @@ This is a test README for {{packageName}}.`;
       expect(existsSync(join(testOutputDir, 'test-module', 'config', 'rspack.config.js'))).toBe(
         false
       );
+    });
+  });
+
+  describe('monorepo exclusions', () => {
+    it('omits the .husky directory from monorepo packages', async () => {
+      mkdirSync(join(testTemplatesDir, '.husky'), { recursive: true });
+      writeFileSync(join(testTemplatesDir, '.husky', 'pre-commit'), 'npx lint-staged\n');
+
+      await generateFiles(
+        { ...mockProjectConfig, isMonorepo: true, packageLocation: 'packages/test-module' },
+        mockModuleConfig,
+        mockOptions,
+        testOutputDir
+      );
+      expect(existsSync(join(testOutputDir, 'packages/test-module', '.husky'))).toBe(false);
+
+      await generateFiles(mockProjectConfig, mockModuleConfig, mockOptions, testOutputDir);
+      expect(existsSync(join(testOutputDir, 'test-module', '.husky', 'pre-commit'))).toBe(true);
     });
   });
 
