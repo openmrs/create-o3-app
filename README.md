@@ -269,7 +269,7 @@ If you see warnings about missing peers, add the missing dependencies and align 
     "react-is": "^18.3.1",
     "sass": "^1.33.0",
     "single-spa": "^6.0.0",
-    "swr": "^2.0.0"
+    "swr": "2.5.1"
   }
 }
 ```
