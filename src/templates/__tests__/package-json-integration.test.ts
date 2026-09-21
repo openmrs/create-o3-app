@@ -44,6 +44,16 @@ describe('package.json template integration', () => {
     git: true,
   };
 
+  const scaffoldVariants: ProjectConfig[] = [
+    baseProjectConfig,
+    { ...baseProjectConfig, buildTool: 'webpack' },
+    {
+      ...baseProjectConfig,
+      isMonorepo: true,
+      packageLocation: 'packages/apps/esm-test-module',
+    },
+  ];
+
   async function renderPackageJson(projectConfig: ProjectConfig) {
     await generateFiles(projectConfig, moduleConfig, options, testOutputDir);
 
@@ -60,6 +70,18 @@ describe('package.json template integration', () => {
 
     expect(packageJson.generator).toMatch(/^@openmrs\/create-o3-app@\d+\.\d+\.\d+$/);
   });
+
+  it.each(scaffoldVariants)(
+    'sets the React 18.3.1 development minimum for $buildTool, monorepo=$isMonorepo',
+    async (projectConfig) => {
+      const packageJson = await renderPackageJson(projectConfig);
+
+      for (const dependency of ['react', 'react-dom']) {
+        expect(packageJson.devDependencies[dependency]).toBe('^18.3.1');
+        expect(packageJson.peerDependencies[dependency]).toBe('18.x');
+      }
+    }
+  );
 
   it('keeps husky hooks for standalone modules but omits them from monorepo packages', async () => {
     const standalone = await renderPackageJson(baseProjectConfig);
