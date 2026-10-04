@@ -183,4 +183,29 @@ describe('generateStandaloneModule', () => {
 
     expect(generateFiles).toHaveBeenCalledTimes(1);
   });
+
+   it('skips dependency installation when skipInstall is true', async () => {
+    const options = {
+      dryRun: false,
+      skipInstall: true,
+    };
+    const projectConfig = {
+      projectName: 'billing',
+      packageName: '@openmrs/esm-billing',
+      description: 'billing frontend module for O3',
+      buildTool: 'rspack',
+      isMonorepo: false,
+      isNewMonorepo: false,
+      git: false,
+    };
+    const moduleConfig = {
+      type: 'page',
+      routes: [],
+      extensions: [],
+    };
+
+    await generateStandaloneModule(projectConfig, moduleConfig, options);
+
+    expect(installDependencies).not.toHaveBeenCalled();
+  });
 });

@@ -50,6 +50,7 @@ program
   .option('--dry-run', 'Preview changes without executing')
   .option('--verbose', 'Verbose output')
   .option('--quiet', 'Suppress output')
+  .option('--skip-install', 'Skip dependency installation after generation')
   .addHelpText(
     'after',
     `

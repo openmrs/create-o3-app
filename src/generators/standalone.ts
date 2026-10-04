@@ -76,7 +76,13 @@ export async function generateStandaloneModule(
       spinner.text = '[4/4] Installing dependencies...';
       spinner.stop();
       logger.info('[4/4] Installing dependencies...');
-      await installDependencies(outputDir, options);
+      if (!options.skipInstall) {
+        await installDependencies(outputDir, options);
+      } else {
+        logger.info(
+          'Skipping dependency installation. Run `corepack yarn install` in the project directory when ready.'
+        );
+      }
     } else {
       logger.info('[DRY RUN] Would install dependencies');
     }
